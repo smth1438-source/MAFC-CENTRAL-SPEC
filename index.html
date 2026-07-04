@@ -806,6 +806,40 @@ tbody tr:hover{background:rgba(0,71,171,.035);}
 .ps-acc-btn.on{background:var(--blue);border-color:var(--blue);color:#fff;}
 .ps-acc-tag{display:inline-block;font-size:10.5px;font-weight:600;color:#B26A00;background:#FFF1E0;padding:1px 7px;border-radius:6px;margin-left:6px;vertical-align:1px;}
 .ps-logo.drag{outline:2px dashed var(--blue);outline-offset:2px;background:rgba(0,71,171,.05);}
+
+.ps-ptypes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ps-ptype{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--ink);cursor:pointer;transition:all .15s;}
+.ps-ptype .dot{width:12px;height:12px;border-radius:50%;background:var(--pc);flex-shrink:0;}
+.ps-ptype:hover{border-color:var(--pc);}
+.ps-ptype.on{background:var(--pc);color:#fff;border-color:var(--pc);}
+.ps-ptype.on .dot{background:#fff;}
+@media(max-width:640px){.ps-ptypes{grid-template-columns:repeat(2,1fr);}}
+.ps-clk{cursor:pointer;}.ps-clk:hover{color:var(--blue);}
+
+.stale{font-size:10px;font-weight:600;color:#B26A00;background:#FFF1E0;padding:1px 6px;border-radius:6px;}
+.stale-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E8820C;vertical-align:1px;margin-left:2px;}
+.trlist{display:flex;flex-direction:column;gap:8px;}
+.trrow{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;}
+.trinfo{min-width:0;}
+
+.ps-revlist{display:flex;flex-direction:column;gap:8px;}
+.ps-revrow{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:11px 14px;}
+.ps-revtag{font-family:var(--mono);font-weight:600;color:#fff;background:var(--blue);padding:2px 9px;border-radius:6px;font-size:12px;}
+
+.dashtab{width:100%;border-collapse:collapse;font-size:13.5px;}
+.dashtab th{background:var(--paper);padding:9px 12px;font-size:12px;color:var(--gray);font-weight:600;text-align:center;border-bottom:1.5px solid var(--line);}
+.dashtab td{padding:9px 12px;border-bottom:1px solid var(--line);}
+.dashtab td.num{text-align:center;font-family:var(--mono);}
+.dashtab tbody tr{cursor:pointer;}
+.dashtab tbody tr:hover{background:rgba(0,71,171,.04);}
+@media print{
+  .stickytop,.topbar,footer,.modebar,.toolbar,.refreshbtn,.rowacts,.actcell,.overlay,#srcbadge,.compare-bar,.cmpbar{display:none !important;}
+  body{background:#fff;}
+  #view .tablecard{border:none;box-shadow:none;}
+  #view table{font-size:11px;min-width:0;}
+  .secrow td{background:#eee !important;-webkit-print-color-adjust:exact;}
+  .matcard,tr{break-inside:avoid;}
+}
 </style>
 </head>
 <body>
@@ -818,7 +852,7 @@ tbody tr:hover{background:rgba(0,71,171,.035);}
       <img class="logo-img" src="data:image/png;base64,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" alt="MA.FC GROUP">
       <div>
         <div class="wordmark">MA.FC GROUP&nbsp;</div>
-        <div class="sub">CENTRAL SPEC · ระบบสเปกวัสดุกลาง ·&nbsp;V3.2&nbsp;</div>
+        <div class="sub">CENTRAL SPEC · ระบบสเปกวัสดุกลาง ·&nbsp;V3.11&nbsp;</div>
       </div>
     </div>
     <div class="head-meta">
@@ -856,6 +890,8 @@ tbody tr:hover{background:rgba(0,71,171,.035);}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M4 9h16M4 15h16M10 3v18"></path></svg>
         เปิด Sheet
       </a>
+      <button class="refreshbtn" id="dashBtn" title="สรุปความสมบูรณ์ข้อมูล"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></button>
+      <button class="refreshbtn" id="trashBtn" title="ถังขยะ (กู้คืนที่ลบ)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>
       <button class="refreshbtn" id="globalSearchBtn" title="ค้นหาทุกหมวด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path><path d="M11 8.5v5M8.5 11h5"></path></svg></button>
       <button class="refreshbtn" id="refreshBtn" title="โหลดข้อมูลใหม่จาก Sheet">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"></path></svg>
@@ -947,6 +983,9 @@ tbody tr:hover{background:rgba(0,71,171,.035);}
         <label style="margin-top:10px">รหัสลับ (Token) <span style="font-weight:400;color:var(--gray)">— ต้องตรงกับ SECRET ใน Apps Script</span></label>
         <input type="text" id="cfgToken" class="mono" placeholder="เว้นว่างได้ ถ้ายังไม่ตั้ง token">
         <div class="hint">ใส่แล้ว = ระบบจะ <b>ดึงทุกแท็บในชีตอัตโนมัติ</b> (ชื่อแท็บ = ชื่อหมวด) และเพิ่มแท็บใหม่ให้เองเมื่อรีเฟรช · เว้นว่าง = แสดงข้อมูลตัวอย่าง</div>
+        <label style="margin-top:10px">ชื่อผู้ใช้ (สำหรับบันทึกประวัติการแก้ไข)</label>
+        <input type="text" id="cfgUser" placeholder="เช่น สมชาย / ฝ่ายจัดซื้อ">
+        <div class="hint">ชื่อนี้จะถูกบันทึกลงแท็บ _LOG ทุกครั้งที่เพิ่ม/แก้/ลบ</div>
       </div>
       <div class="note"><b>ติดตั้งครั้งเดียว — จากนั้นแก้ในชีตได้เลย ระบบอัปเดตตามอัตโนมัติ:</b><br>1. ในชีต → เมนู <b>Extensions › Apps Script</b><br>2. ลบโค้ดเดิมทิ้ง วางโค้ดด้านล่างลงไป → กด <b>บันทึก</b><br>3. กด <b>Deploy › New deployment</b> → เลือก <b>Web app</b><br>4. ตั้ง <b>Execute as: Me</b> · <b>Who has access: Anyone</b> → <b>Deploy</b><br>5. คัดลอก <b>Web app URL</b> (ลงท้ายด้วย /exec) → วางในช่องด้านบน → กด “บันทึก &amp; โหลดข้อมูล”<br><span style="color:var(--cm)">เพิ่ม/แก้/ลบ แท็บ หรือแถวในชีตเมื่อไหร่ หน้านี้จะตามให้เองทุกครั้งที่รีเฟรช</span></div>
       <div class="codebox" id="scriptCode">// ===== MA.FC Central Spec — Apps Script (อ่าน + เขียน) รองรับ JSONP/GET และ POST =====
@@ -959,7 +998,14 @@ var IMG_FOLDER_ID = '1_u56981ZvZgOj6QnLjNEeFYjWY3hfcdT';
 
 // ---------- Router: ทั้ง GET (JSONP) และ POST เข้าที่เดียวกัน ----------
 function doGet(e){ return route(e); }
-function doPost(e){ return route(e); }
+function doPost(e){
+  var params = {};
+  try{ if(e &amp;&amp; e.postData &amp;&amp; e.postData.contents){ params = JSON.parse(e.postData.contents); } }catch(err){}
+  var merged = {}, k;
+  if(e &amp;&amp; e.parameter){ for(k in e.parameter) merged[k]=e.parameter[k]; }
+  if(params &amp;&amp; typeof params==='object'){ for(k in params) merged[k]=params[k]; }
+  return route({ parameter: merged });
+}
 
 function route(e){
   e = e || {};
@@ -968,11 +1014,12 @@ function route(e){
   var act = p.action || 'read';
 
   // การเขียนต้องผ่าน token (ถ้าตั้ง SECRET ไว้)
-  var WRITE = { add:1, update:1, 'delete':1, createProject:1, projectSave:1, projectDelete:1, uploadImage:1, accSave:1 };
+  var WRITE = { add:1, update:1, 'delete':1, createProject:1, projectSave:1, projectDelete:1, uploadImage:1, accSave:1, restore:1 };
   if (WRITE[act] &amp;&amp; SECRET &amp;&amp; String(p.token||'') !== SECRET){
     return reply(cb, { ok:false, error:'unauthorized' });
   }
 
+  if (WRITE[act]){ try{ logAction_(p, act); }catch(e){} }
   if (act === 'add')            return reply(cb, addRow(p));
   if (act === 'update')         return reply(cb, updateRow(p));
   if (act === 'delete')         return reply(cb, deleteRow(p));
@@ -985,6 +1032,8 @@ function route(e){
   if (act === 'imageUrl')       return reply(cb, imageUrl(p));      // ดึงลิงก์รูปตามรหัส
   if (act === 'accGet')         return reply(cb, accGet());         // เทมเพลตอุปกรณ์เสริม (อ่าน)
   if (act === 'accSave')        return reply(cb, accSave(p));       // เทมเพลตอุปกรณ์เสริม (บันทึก)
+  if (act === 'trashList')      return reply(cb, trashList());       // ถังขยะ (อ่าน)
+  if (act === 'restore')        return reply(cb, restore(p));        // กู้คืนจากถังขยะ
   return reply(cb, readWorkbook());        // ค่าเริ่มต้น = อ่านทุกแท็บ
 }
 
@@ -1019,13 +1068,17 @@ function colMap(sh){
     size: col(/ขนาด|ชนิด|size/i), brand: col(/แบรนด|refer|brand/i),
     link: col(/ลิงค|ลิงก|link/i), price: col(/ราคา|price/i),
     contact: col(/เบอร|contact/i), grade: col(/เกรด|grade/i),
-    img: col(/รูป|image|img/i) };
+    img: col(/รูป|image|img/i),
+    unit: col(/^\s*หน่วย\s*$|หน่วยนับ|^\s*unit\s*$/i),
+    labor: col(/ค่าแรง|labou?r|แรงงาน/i),
+    priceDate: col(/ราคา.*วันท|วันท.*ราคา|price.?date/i),
+    std: col(/มอก|astm|มาตรฐาน|standard/i) };
 }
 function ensureSheet(ss, name){
   var sh = ss.getSheetByName(name);
   if (sh) return sh;
   sh = ss.insertSheet(name);
-  var hdr = ['รหัส','รายละเอียด','ชนิด/ขนาด','เกรด','แบรนด์','ลิงค์','ราคาต่อหน่วย','เบอร์เซลล์','รูป'];
+  var hdr = ['รหัส','รายละเอียด','ชนิด/ขนาด','เกรด','แบรนด์','ลิงค์','ราคาต่อหน่วย','เบอร์เซลล์','รูป','หน่วย','ค่าแรง/หน่วย','ราคา ณ วันที่','มาตรฐาน'];
   sh.getRange(1,1,1,hdr.length).setValues([hdr])
     .setFontWeight('bold').setFontColor('#ffffff').setBackground('#0047AB');
   sh.setFrozenRows(1); sh.setColumnWidth(2,320);
@@ -1036,7 +1089,7 @@ function fillRow(arr, idx, p){
   put('code',p.code); put('desc',p.desc); put('size',p.size);
   put('brand',p.brand); put('link',p.link);
   put('price', Number(p.price)||p.price); put('contact',p.contact);
-  put('grade',p.grade); put('img',p.img);
+  put('grade',p.grade); put('img',p.img); put('unit',p.unit); put('labor',p.labor); put('priceDate',p.priceDate); put('std',p.std);
   return arr;
 }
 function findRow(sh, code){
@@ -1067,9 +1120,18 @@ function groupInsertRow(sh, idx, maincode, section){
 }
 
 // ---------- WRITE ----------
+function ensureCols_(sh){
+  var lastCol=sh.getLastColumn(); var headers=lastCol?sh.getRange(1,1,1,lastCol).getValues()[0]:[];
+  var want=['หน่วย','ค่าแรง/หน่วย','ราคา ณ วันที่','มาตรฐาน'];
+  want.forEach(function(name){
+    var found=false;
+    for(var i=0;i&lt;headers.length;i++){ var h=String(headers[i]); if(new RegExp('^\\s*'+name+'\\s*$').test(h)){ found=true; break; } }
+    if(!found){ sh.getRange(1,(sh.getLastColumn()||0)+1).setValue(name).setFontWeight('bold'); }
+  });
+}
 function addRow(p){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ensureSheet(ss, p.cat);
+  var sh = ensureSheet(ss, p.cat); ensureCols_(sh);
   var idx = colMap(sh);
   var row = []; for(var k=0;k&lt;idx.lastCol;k++) row.push('');
   fillRow(row, idx, p);
@@ -1090,7 +1152,7 @@ function addRow(p){
 }
 function updateRow(p){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName(p.cat); if(!sh) return addRow(p);
+  var sh = ss.getSheetByName(p.cat); if(!sh) return addRow(p); ensureCols_(sh);
   var rowNo = findRow(sh, p.origcode || p.code);
   if (rowNo &lt; 0) return addRow(p);
   var idx = colMap(sh);
@@ -1098,13 +1160,47 @@ function updateRow(p){
   rng.setValues([fillRow(rng.getValues()[0], idx, p)]);
   return { ok:true, updated:true, row:rowNo };
 }
+function trashSheet_(){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_TRASH');
+  if(!sh){ sh=ss.insertSheet('_TRASH'); sh.appendRow(['id','deletedAt','cat','code','json','user']); try{ sh.hideSheet(); }catch(e){} }
+  return sh;
+}
 function deleteRow(p){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(p.cat); if(!sh) return { ok:true, deleted:false };
   var rowNo = findRow(sh, p.code);
   if (rowNo &lt; 0) return { ok:true, deleted:false };
+  try{
+    var lastCol=sh.getLastColumn();
+    var rowVals=sh.getRange(rowNo,1,1,lastCol).getValues()[0];
+    var headers=sh.getRange(1,1,1,lastCol).getValues()[0];
+    var obj={}; for(var i=0;i&lt;headers.length;i++){ obj[String(headers[i])]=rowVals[i]; }
+    trashSheet_().appendRow([ 'T'+Date.now(), new Date(), String(p.cat), String(p.code), JSON.stringify(obj), String(p.user||'') ]);
+  }catch(e){}
   sh.deleteRow(rowNo);
   return { ok:true, deleted:true };
+}
+function trashList(){
+  var sh=trashSheet_(); var n=sh.getLastRow(); var out=[];
+  if(n&gt;=2){ var v=sh.getRange(2,1,n-1,6).getValues();
+    for(var i=0;i&lt;v.length;i++){ if(!v[i][0]) continue;
+      out.push({ id:String(v[i][0]), deletedAt:String(v[i][1]), cat:String(v[i][2]), code:String(v[i][3]), user:String(v[i][5]) }); } }
+  return { ok:true, trash: out };
+}
+function restore(p){
+  var id=String(p.id||''); if(!id) return { ok:false, error:'no id' };
+  var sh=trashSheet_(); var n=sh.getLastRow(); var row=-1, rec=null;
+  if(n&gt;=2){ var v=sh.getRange(2,1,n-1,6).getValues();
+    for(var i=0;i&lt;v.length;i++){ if(String(v[i][0])===id){ row=i+2; rec=v[i]; break; } } }
+  if(row&lt;0||!rec) return { ok:false, error:'not found' };
+  var cat=String(rec[2]); var obj={}; try{ obj=JSON.parse(rec[4]||'{}'); }catch(e){}
+  var ss=SpreadsheetApp.getActiveSpreadsheet(); var tsh=ensureSheet(ss,cat); ensureCols_(tsh);
+  var lastCol=tsh.getLastColumn(); var headers=tsh.getRange(1,1,1,lastCol).getValues()[0];
+  var arr=[]; for(var c=0;c&lt;lastCol;c++){ var h=String(headers[c]); arr.push(obj[h]!==undefined?obj[h]:''); }
+  tsh.appendRow(arr);
+  sh.deleteRow(row);
+  return { ok:true, restored:true };
 }
 
 // ---------- สร้างไฟล์สเปกรายโครงการ (หน้าปก + แท็บแยกหมวด) ----------
@@ -1124,7 +1220,10 @@ function createProject(p){
     ['เจ้าของอาคาร', cov.owner || ''],
     ['ผู้ออกแบบ', cov.designer || ''],
     ['รหัสไฟล์', name],
-    ['ขั้นตอน', data.stage || '']
+    ['ขั้นตอน', data.stage || ''],
+    ['ผู้จัดทำ', cov.preparedBy || ''],
+    ['ผู้ตรวจ', cov.checkedBy || ''],
+    ['ผู้อนุมัติ', cov.approvedBy || '']
   ];
   cv.getRange(4,2,meta.length,2).setValues(meta);
   cv.getRange(4,2,meta.length,1).setFontWeight('bold');
@@ -1277,6 +1376,14 @@ function accSave(p){
   var sh=accSheet_(); sh.getRange(1,1).setValue(String(p.data||'{}'));
   return { ok:true };
 }
+
+// ---------- Audit log (_LOG) ----------
+function logAction_(p, act){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_LOG');
+  if(!sh){ sh=ss.insertSheet('_LOG'); sh.appendRow(['เวลา','ผู้ใช้','การกระทำ','หมวด/ไฟล์','รหัส']); try{ sh.hideSheet(); }catch(e){} }
+  sh.appendRow([ new Date(), String(p.user||'-'), String(act||''), String(p.cat||p.name||p.id||''), String(p.code||p.origcode||'') ]);
+}
 </div>
       <div class="wizfoot" style="margin-top:4px">
         <button class="btn ghost" id="cancelSettings">ยกเลิก</button>
@@ -1290,7 +1397,7 @@ function accSave(p){
 /* ============================================================
    CONFIG — แก้ค่าตรงนี้ หรือกดปุ่มเฟือง ⚙ มุมขวาบนเพื่อใส่ตอนใช้งาน
    ============================================================ */
-const SHEET_CONFIG = {
+const SHEET_CONFIG = { user:"",
   sheetId: "1LIyW6J-vfriWXOLRO2miaKkmdBcWUouluobUa7dTRUI",   // 07-CENTRAL-SPEC
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbwYcOtq0WSclCdXQn2ve6WbrSrYZbQ378LTm-rSUj_TeVVgVTCHbFvN49btU2AXjaGgzw/exec",     // วาง URL Apps Script Web App (/exec) → ดึงทุกแท็บอัตโนมัติ + เพิ่มลงชีตได้
   token: "",             // รหัสลับ (ต้องตรงกับ SECRET ใน Apps Script; เว้นว่าง = ไม่ใช้)
@@ -1369,7 +1476,7 @@ function parseSheetGrid(values){
     const isItem = /-/.test(code) && /\d/.test(code);
     if(isItem){
       items.push({ code:code, desc:desc, size:cell("size"), brand:cell("brand"), link:cell("link"),
-        price:cell("price"), contact:cell("contact"), grade:normGrade(cell("grade")), img:cell("img"), section:cur });
+        price:cell("price"), contact:cell("contact"), grade:normGrade(cell("grade")), img:cell("img"), unit:cell("unit"), labor:cell("labor"), priceDate:cell("priceDate"), std:cell("std"), section:cur });
     } else {
       cur = desc || code;
       sections.push({ code:code, name:cur });
@@ -1502,20 +1609,8 @@ async function uploadDraftImage(pfx, payload){
   if(!SHEET_CONFIG.appsScriptUrl || !code){ setDraftImg(pfx, local); return; }
   if(box){ box.classList.add("loading"); const m=box.querySelector(".izmsg"); if(m) m.textContent="กำลังอัปรูปเข้า Drive…"; }
   try{
-    const body={ action:"uploadImage", code:code };
-    if(payload.data) body.data=payload.data; else body.url=payload.url;
-    if(SHEET_CONFIG.token) body.token=SHEET_CONFIG.token;
-    await fetch(SHEET_CONFIG.appsScriptUrl,{method:"POST",mode:"no-cors",body:new URLSearchParams(body)});
-    let url="";
-    for(let i=0;i<8 && !url;i++){
-      await new Promise(r=>setTimeout(r,1500));
-      try{
-        const q={ action:"imageUrl", code:code }; if(SHEET_CONFIG.token) q.token=SHEET_CONFIG.token;
-        const r=await jsonp(SHEET_CONFIG.appsScriptUrl+"?"+new URLSearchParams(q).toString(),15000);
-        if(r&&r.ok&&r.url) url=r.url;
-      }catch(_){}
-    }
-    setDraftImg(pfx, url || local);
+    const r=await apiPost(Object.assign({ action:"uploadImage", code:code }, payload.data?{data:payload.data}:{url:payload.url}));
+    setDraftImg(pfx, (r&&r.url) || local);
   }catch(e){ setDraftImg(pfx, local); }
 }
 function imageWidgetHtml(pfx, draft){
@@ -1576,10 +1671,14 @@ function resolveCols(cols){
     else if(m.size===undefined && /size|ขนาด|ชนิด/.test(l)) m.size=i;
     else if(m.brand===undefined && /brand|แบรนด|refer|ยี่ห้อ/.test(l)) m.brand=i;
     else if(m.link===undefined && /link|ลิงก|ลิงค|url|เว็บ/.test(l)) m.link=i;
+    else if(m.priceDate===undefined && /ราคา.*วันท|วันท.*ราคา|price.?date/.test(l)) m.priceDate=i;
     else if(m.price===undefined && /price|ราคา|บาท/.test(l)) m.price=i;
     else if(m.contact===undefined && /contact|เบอร|sales|เซลล|โทร/.test(l)) m.contact=i;
     else if(m.grade===undefined && /grade|เกรด/.test(l)) m.grade=i;
     else if(m.img===undefined && /img|image|รูป|ภาพ/.test(l)) m.img=i;
+    else if(m.unit===undefined && /^หน่วย$|หน่วยนับ|^unit$/.test(l)) m.unit=i;
+    else if(m.labor===undefined && /ค่าแรง|labou?r|แรงงาน/.test(l)) m.labor=i;
+    else if(m.std===undefined && /มอก|astm|มาตรฐาน|standard/.test(l)) m.std=i;
   });
   return m;
 }
@@ -1598,11 +1697,25 @@ function jsonp(url, timeoutMs){
     setTimeout(function(){ if(done) return; cleanup(); reject(new Error("หมดเวลาเชื่อมต่อ")); }, timeoutMs||15000);
   });
 }
+async function apiPost(params){
+  const url=SHEET_CONFIG.appsScriptUrl;
+  if(!url) throw new Error("ยังไม่ได้ตั้งค่า Apps Script");
+  const payload=Object.assign({}, params); if(SHEET_CONFIG.token) payload.token=SHEET_CONFIG.token; if(SHEET_CONFIG.user) payload.user=SHEET_CONFIG.user;
+  const body=JSON.stringify(payload);
+  try{
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body});
+    if(!r.ok) throw new Error("http "+r.status);
+    const txt=await r.text();
+    try{ return JSON.parse(txt); }catch(_){ return {ok:true}; }
+  }catch(e){
+    // fallback: no-cors (เขียนสำเร็จแต่อ่านผลไม่ได้)
+    try{ await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); }catch(_){}
+    return {ok:true,_unconfirmed:true};
+  }
+}
 function scriptWrite(params){
   if(!SHEET_CONFIG.appsScriptUrl) return Promise.reject(new Error("ยังไม่ได้ตั้งค่า Apps Script"));
-  const all=Object.assign({}, params); if(SHEET_CONFIG.token) all.token=SHEET_CONFIG.token;
-  const qs=new URLSearchParams(all).toString();
-  return jsonp(SHEET_CONFIG.appsScriptUrl + "?" + qs, 20000);
+  return apiPost(params);
 }
 async function fetchWorkbookFromScript(){
   const data = await jsonp(SHEET_CONFIG.appsScriptUrl, 15000);
@@ -1720,12 +1833,12 @@ function rowHtml(r, idx){
   const g=r.grade?`<span class="grade ${gradeClass(r.grade)}">${r.grade}</span>`:`<span class="grade none">—</span>`;
   const link=r.link?extLink(r.link,"เปิดสินค้า"):`<span class="nolink">—</span>`;
   return `<tr>
-      <td><span class="cellcode">${esc(r.code)}</span></td>
-      <td class="celldesc">${esc(r.desc)}</td>
+      <td class="ps-clk" ${idx>=0?`data-detail="${idx}"`:''}><span class="cellcode">${esc(r.code)}</span></td>
+      <td class="celldesc ps-clk" ${idx>=0?`data-detail="${idx}"`:''}>${esc(r.desc)}</td>
       <td><span class="cellsize">${esc(r.size)||"—"}</span></td>
       <td class="cellbrand">${esc(r.brand)||"—"}</td>
       <td>${g}</td>
-      <td class="num"><span class="cellprice">${fmtPrice(r.price)}${priceNum(r.price)?'<small> ฿</small>':''}</span></td>
+      <td class="num"><span class="cellprice">${fmtPrice(r.price)}${priceNum(r.price)?'<small> ฿</small>':''}${priceStale(r)?' <span class="stale-dot" title="ราคาเก่ากว่า 6 เดือน"></span>':''}</span></td>
       <td><span class="cellcontact">${esc(r.contact)||"—"}</span></td>
       <td>${link}</td>
       <td class="actcell">${idx>=0?`<div class="rowacts"><button class="rowproj" data-proj="${idx}" title="เพิ่มเข้าโครงการ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="rowedit" data-edit="${idx}" title="แก้ไขวัสดุ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>`:""}</td>
@@ -1837,6 +1950,46 @@ function openCompare(){
   $("#cmpBody").innerHTML=html;
   $("#cmpModal").hidden=false;
 }
+function openDashboard(){
+  let ov=document.getElementById("dashOverlay");
+  if(!ov){ ov=document.createElement("div"); ov.id="dashOverlay"; ov.className="overlay"; document.body.appendChild(ov); }
+  const cats=CATEGORIES.filter(c=>!isSystemCat(c));
+  let T={n:0,np:0,ni:0,nl:0,st:0};
+  const rowsHtml=cats.map(c=>{
+    const rows=CAT_ROWS[c.id]||[]; const n=rows.length;
+    const np=rows.filter(r=>!priceNum(r.price)).length;
+    const ni=rows.filter(r=>!imgSrc(r)).length;
+    const nl=rows.filter(r=>!String(r.link||"").trim()).length;
+    const st=rows.filter(r=>priceStale(r)).length;
+    T.n+=n; T.np+=np; T.ni+=ni; T.nl+=nl; T.st+=st;
+    const bad=(v)=>v?'style="color:#D7263D;font-weight:600"':'';
+    return `<tr data-gocat="${esc(c.id)}"><td><span class="mono" style="color:var(--blue)">${esc(c.code)}</span> ${esc(c.name)}</td><td class="num">${n}</td><td class="num" ${bad(np)}>${np}</td><td class="num" ${bad(ni)}>${ni}</td><td class="num">${nl}</td><td class="num" ${st?'style="color:#B26A00;font-weight:600"':''}>${st}</td></tr>`;
+  }).join("");
+  ov.innerHTML=`<div class="modal" style="max-width:780px"><div class="modal-h"><h3>สรุปความสมบูรณ์ข้อมูลคลัง</h3><button class="iconbtn" data-x><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-b"><div class="ps-dim" style="font-size:12.5px;margin-bottom:10px">รวม ${T.n} รายการ · ไม่มีราคา ${T.np} · ไม่มีรูป ${T.ni} · ไม่มีลิงก์ ${T.nl} · ราคาเก่า ${T.st} · คลิกแถวเพื่อไปหมวดนั้น</div>
+    <div class="tablescroll"><table class="dashtab"><thead><tr><th style="text-align:left">หมวด</th><th>รายการ</th><th>ไม่มีราคา</th><th>ไม่มีรูป</th><th>ไม่มีลิงก์</th><th>ราคาเก่า</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div></div>`;
+  ov.hidden=false;
+  const close=()=>{ ov.hidden=true; };
+  ov.querySelector("[data-x]").onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+  ov.querySelectorAll("[data-gocat]").forEach(tr=>tr.onclick=()=>{ state.cat=tr.dataset.gocat; state.q=""; state.brand=""; state.grade=""; const si=$("#search"); if(si) si.value=""; close(); setMode("find"); ensureLoaded(state.cat); renderFind(); });
+}
+async function openTrash(){
+  if(!SHEET_CONFIG.appsScriptUrl){ alert("ยังไม่ได้ตั้งค่า Apps Script (ปุ่มเฟือง)"); return; }
+  let ov=document.getElementById("trashOverlay");
+  if(!ov){ ov=document.createElement("div"); ov.id="trashOverlay"; ov.className="overlay"; document.body.appendChild(ov); }
+  ov.innerHTML=`<div class="modal" style="max-width:620px"><div class="modal-h"><h3>ถังขยะ — วัสดุที่ลบ</h3><button class="iconbtn" id="trClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="modal-b" id="trBody"><div class="statebox"><div class="spinner"></div><div class="big">กำลังโหลด…</div></div></div></div>`;
+  ov.hidden=false;
+  document.getElementById("trClose").onclick=()=>{ ov.hidden=true; };
+  ov.onclick=e=>{ if(e.target===ov) ov.hidden=true; };
+  try{
+    const q={action:"trashList"}; if(SHEET_CONFIG.token) q.token=SHEET_CONFIG.token;
+    const r=await jsonp(SHEET_CONFIG.appsScriptUrl+"?"+new URLSearchParams(q).toString(),15000);
+    const list=(r&&r.trash)||[];
+    const body=document.getElementById("trBody");
+    body.innerHTML = list.length ? `<div class="trlist">${list.map(t=>`<div class="trrow"><div class="trinfo"><div><span class="mono" style="color:var(--blue);font-weight:600">${esc(t.code)}</span> <span class="ps-dim">${esc(t.cat)}</span></div><div class="ps-dim" style="font-size:11px">ลบเมื่อ ${esc(String(t.deletedAt).slice(0,16))}${t.user?(" · "+esc(t.user)):""}</div></div><button class="btn ghost" data-restore="${esc(t.id)}">กู้คืน</button></div>`).join("")}</div>` : `<div class="statebox"><div class="big">ถังขยะว่าง</div></div>`;
+    body.querySelectorAll("[data-restore]").forEach(b=>b.onclick=async()=>{ b.disabled=true; b.textContent="กำลังกู้…"; try{ const rr=await apiPost({action:"restore", id:b.dataset.restore}); if(rr&&rr.ok===false) throw new Error(); const row=b.closest(".trrow"); if(row) row.remove(); loadWorkbook(true); }catch(e){ b.disabled=false; b.textContent="ล้มเหลว ลองใหม่"; } });
+  }catch(e){ const body=document.getElementById("trBody"); if(body) body.innerHTML='<div class="statebox"><div class="big">โหลดถังขยะไม่สำเร็จ</div></div>'; }
+}
 function openGlobalFinder(){
   let ov=document.getElementById("gfOverlay");
   if(!ov){ ov=document.createElement("div"); ov.id="gfOverlay"; ov.className="overlay"; document.body.appendChild(ov); }
@@ -1873,6 +2026,7 @@ function nextAccCode(code){ const ac=getAccCat(); let mx=0; if(ac){ const re=new
 
 let mdState=null;
 function ensureMDOverlay(){ let ov=document.getElementById("mdOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="mdOverlay"; ov.className="overlay"; document.body.appendChild(ov); } return ov; }
+function priceStale(r){ if(!r||!r.priceDate) return false; const d=new Date(r.priceDate); if(isNaN(d.getTime())) return false; return (Date.now()-d.getTime())>180*86400000; }
 function openMaterialDetail(row, catId){ if(!row) return; const cat=CATEGORIES.find(c=>c.id===catId)||{code:"",name:""}; mdState={row,cat}; drawMD(); ensureMDOverlay().hidden=false; }
 function accRowHtml(a){ return `<div class="md-acc-row" data-code="${esc(a.code)}"><span class="md-acc-code mono">${esc(a.code)}</span><input data-af="desc" value="${esc(a.desc)}" placeholder="ชื่ออุปกรณ์"/><input data-af="size" class="sm" value="${esc(a.size)}" placeholder="หน่วย/ขนาด"/><input data-af="price" class="num sm" value="${esc(a.price)}" placeholder="ราคา"/><button class="md-acc-del" data-del="${esc(a.code)}" title="ลบ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`; }
 function drawMD(){
@@ -1884,7 +2038,11 @@ function drawMD(){
         <div class="md-info"><div class="md-code mono">${esc(row.code)||"—"}</div><div class="md-desc">${esc(row.desc)||"—"}</div>
           <div class="md-meta"><span>แบรนด์</span><b>${esc(row.brand)||"—"}</b></div>
           <div class="md-meta"><span>ชนิด/ขนาด</span><b>${esc(row.size)||"—"}</b></div>
-          <div class="md-meta"><span>ราคา</span><b>${fmtPrice(row.price)} ฿/หน่วย</b></div>
+          <div class="md-meta"><span>หน่วย</span><b>${esc(row.unit)||"—"}</b></div>
+          <div class="md-meta"><span>ราคา</span><b>${fmtPrice(row.price)} ฿/หน่วย${priceStale(row)?' <span class="stale">ราคาเก่า</span>':''}</b></div>
+          <div class="md-meta"><span>ค่าแรง/หน่วย</span><b>${row.labor?("฿"+esc(row.labor)):"—"}</b></div>
+          <div class="md-meta"><span>ราคา ณ วันที่</span><b>${row.priceDate?esc(row.priceDate):"—"}</b></div>
+          <div class="md-meta"><span>มาตรฐาน</span><b>${row.std?esc(row.std):"—"}</b></div>
           <div class="md-meta"><span>เบอร์เซลล์</span><b>${esc(row.contact)||"—"}</b></div>
         </div></div>
       <div class="md-acc-h">อุปกรณ์เสริมของหมวด <b>${esc(cat.name)}</b> <span class="ps-dim" style="font-weight:400">(${accs.length})</span></div>
@@ -2010,6 +2168,9 @@ const FIELDS=[
   {k:"brand",label:"แบรนด์ / REFER",req:true,ph:"เช่น COTTO",hint:"BRAND"},
   {k:"price",label:"ราคา/หน่วย (บาท) — ไม่ระบุก็ได้",mono:true,ph:"เช่น 420",hint:"PRICE",type:"number"},
   {k:"contact",label:"เบอร์เซลล์",req:true,mono:true,ph:"เช่น 081-234-5678",hint:"CONTACT"},
+  {k:"unit",label:"หน่วย — ไม่ระบุก็ได้",mono:true,ph:"เช่น ตร.ม. / ชิ้น / ชุด",hint:"UNIT"},
+  {k:"labor",label:"ค่าแรง/หน่วย — ไม่ระบุก็ได้",mono:true,ph:"เช่น 150",hint:"LABOR",type:"number"},
+  {k:"std",label:"มาตรฐาน (มอก./ASTM) — ไม่ระบุก็ได้",mono:true,ph:"เช่น มอก.2508-2555",hint:"STD"},
   {k:"link",label:"ลิงก์สินค้า (URL)",full:true,mono:true,ph:"https://…",hint:"LINK"},
 ];
 function renderAdd(){
@@ -2172,7 +2333,7 @@ async function submitAdd(){
   if(SHEET_CONFIG.appsScriptUrl){
     try{
       const catObj=CATEGORIES.find(c=>c.id===addState.cat);
-      const body=new URLSearchParams({cat:(catObj?(catObj.sheetName||catObj.id):addState.cat),maincode:d.mainCode,section:d.section,code:d.code,desc:d.desc,size:d.size,brand:d.brand,link:d.link,price:String(d.price),contact:d.contact,grade:d.grade,img:d.img});
+      const body=new URLSearchParams({cat:(catObj?(catObj.sheetName||catObj.id):addState.cat),maincode:d.mainCode,section:d.section,code:d.code,desc:d.desc,size:d.size,brand:d.brand,link:d.link,price:String(d.price),contact:d.contact,grade:d.grade,img:d.img,unit:(d.unit||""),labor:(d.labor||""),std:(d.std||""),priceDate:(String(d.price||"").trim()?new Date().toISOString().slice(0,10):"")});
       // Apps Script web app ไม่ส่ง CORS header — ใช้ no-cors เพื่อให้ append ทำงานได้จริง (อ่านผลลัพธ์ไม่ได้ จึงยืนยันด้วยการรีเฟรช)
       setSyncStatus("saving");
       const __p=Object.fromEntries(body); __p.action="add"; const __r=await scriptWrite(__p); if(__r&&__r.ok===false) throw new Error(__r.error||"บันทึกไม่สำเร็จ");
@@ -2192,7 +2353,7 @@ async function submitAdd(){
 function openEdit(idx){
   const row=LAST_ROWS[idx]; if(!row) return;
   const sec=(CAT_SECTIONS[state.cat]||[]).find(s=>s.name===(row.section||""));
-  editState={ row:row, cat:state.cat, draft:{ code:row.code||"", desc:row.desc||"", size:row.size||"", brand:row.brand||"", link:row.link||"", price:String(row.price==null?"":row.price), contact:row.contact||"", grade:row.grade||"", img:row.img||"", mainCode:row.mainCode||(sec?sec.code:""), section:row.section||"", __newGroup:false }, errors:{} };
+  editState={ row:row, cat:state.cat, draft:{ code:row.code||"", desc:row.desc||"", size:row.size||"", brand:row.brand||"", link:row.link||"", price:String(row.price==null?"":row.price), contact:row.contact||"", grade:row.grade||"", img:row.img||"", unit:row.unit||"", labor:row.labor||"", priceDate:row.priceDate||"", std:row.std||"", mainCode:row.mainCode||(sec?sec.code:""), section:row.section||"", __newGroup:false }, errors:{} };
   renderEditForm();
   $("#editModal").hidden=false;
 }
@@ -2228,13 +2389,14 @@ function saveEdit(){
   if(!editState) return;
   if(!validateEdit()){ renderEditForm(); return; }
   const d=editState.draft, r=editState.row;
-  const origCode=r.code;
+  const origCode=r.code; const origPrice=String(r.price==null?"":r.price).trim();
   const catName=(CATEGORIES.find(c=>c.id===editState.cat)||{}).sheetName||(CATEGORIES.find(c=>c.id===editState.cat)||{}).name||editState.cat;
   registerSection(editState.cat, d.mainCode, d.section);
   r.code=d.code.trim(); r.desc=d.desc.trim(); r.size=d.size.trim(); r.brand=d.brand.trim();
-  r.link=d.link.trim(); r.price=String(d.price).trim(); r.contact=d.contact.trim(); r.grade=d.grade; r.img=d.img.trim();
+  r.link=d.link.trim(); r.price=String(d.price).trim(); r.contact=d.contact.trim(); r.grade=d.grade; r.img=d.img.trim(); r.unit=(d.unit||"").trim(); r.labor=(d.labor||"").trim(); r.std=(d.std||"").trim();
   r.section=d.section.trim(); r.mainCode=d.mainCode.trim();
-  syncToSheet("update", { cat:catName, origcode:origCode, code:r.code, desc:r.desc, size:r.size, brand:r.brand, link:r.link, price:String(r.price), contact:r.contact, grade:r.grade, img:r.img });
+  if(String(r.price).trim()!==origPrice && String(r.price).trim()!=="") r.priceDate=new Date().toISOString().slice(0,10);
+  syncToSheet("update", { cat:catName, origcode:origCode, code:r.code, desc:r.desc, size:r.size, brand:r.brand, link:r.link, price:String(r.price), contact:r.contact, grade:r.grade, img:r.img, unit:r.unit, labor:r.labor, priceDate:r.priceDate, std:r.std });
   closeEdit();
   renderFind();
 }
@@ -2288,16 +2450,17 @@ function setMode(m){
 }
 
 /* ===================== SETTINGS ===================== */
-function openSettings(){ $("#cfgSheetId").value=SHEET_CONFIG.sheetId; $("#cfgScript").value=SHEET_CONFIG.appsScriptUrl; $("#cfgToken").value=SHEET_CONFIG.token||""; $("#settingsModal").hidden=false; }
+function openSettings(){ $("#cfgSheetId").value=SHEET_CONFIG.sheetId; $("#cfgScript").value=SHEET_CONFIG.appsScriptUrl; $("#cfgToken").value=SHEET_CONFIG.token||""; $("#cfgUser").value=SHEET_CONFIG.user||""; $("#settingsModal").hidden=false; }
 function closeSettings(){ $("#settingsModal").hidden=true; }
 function saveSettings(){
   SHEET_CONFIG.sheetId=$("#cfgSheetId").value.trim();
   SHEET_CONFIG.appsScriptUrl=$("#cfgScript").value.trim();
   SHEET_CONFIG.token=$("#cfgToken").value.trim();
+  SHEET_CONFIG.user=$("#cfgUser").value.trim();
   // ดึง ID จาก URL เต็มได้
   const mm=SHEET_CONFIG.sheetId.match(/\/d\/([a-zA-Z0-9-_]+)/); if(mm) SHEET_CONFIG.sheetId=mm[1];
   wbState=""; wbErr="";
-  try{ localStorage.setItem("mafc_cfg", JSON.stringify({sheetId:SHEET_CONFIG.sheetId, appsScriptUrl:SHEET_CONFIG.appsScriptUrl, token:SHEET_CONFIG.token})); }catch(_){}
+  try{ localStorage.setItem("mafc_cfg", JSON.stringify({sheetId:SHEET_CONFIG.sheetId, appsScriptUrl:SHEET_CONFIG.appsScriptUrl, token:SHEET_CONFIG.token, user:SHEET_CONFIG.user})); }catch(_){}
   closeSettings(); renderSrcBadge();
   loadWorkbook(true); startAutoRefresh();
 }
@@ -2318,6 +2481,8 @@ $("#modeAdd").addEventListener("click",()=>setMode("add"));
 $("#modeProject").addEventListener("click",()=>setMode("project"));
 $("#refreshBtn").addEventListener("click",()=>loadWorkbook(true));
 $("#globalSearchBtn")&&$("#globalSearchBtn").addEventListener("click",openGlobalFinder);
+$("#trashBtn")&&$("#trashBtn").addEventListener("click",openTrash);
+$("#dashBtn")&&$("#dashBtn").addEventListener("click",openDashboard);
 $("#copyLinkBtn")&&$("#copyLinkBtn").addEventListener("click",copyCatLink);
 $("#exportCsvBtn")&&$("#exportCsvBtn").addEventListener("click",exportCatCsv);
 $("#printBtn")&&$("#printBtn").addEventListener("click",()=>window.print());
@@ -2434,9 +2599,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   function saveAccLocal(){ try{ localStorage.setItem(LS_ACC, JSON.stringify(accTpl)); }catch(_){} }
   function accPush(){
     if(!hasBackend()) return;
-    const body={ action:"accSave", data:JSON.stringify(accTpl) };
-    if(SHEET_CONFIG.token) body.token=SHEET_CONFIG.token;
-    try{ fetch(SHEET_CONFIG.appsScriptUrl,{method:"POST",mode:"no-cors",body:new URLSearchParams(body)}); }catch(_){}
+    try{ apiPost({ action:"accSave", data:JSON.stringify(accTpl) }); }catch(_){}
   }
   function saveAcc(){ saveAccLocal(); accPush(); }
   async function accPull(){
@@ -2473,9 +2636,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     if(!hasBackend()) return Promise.resolve(false);
     let json=JSON.stringify(p);
     if(json.length>45000){ try{ const c=JSON.parse(json); if(c.cover) c.cover.logo=""; json=JSON.stringify(c); }catch(_){} }
-    const body={ action:"projectSave", id:p.id, name:fileName(p), updatedAt:String(p.updatedAt||Date.now()), json:json };
-    if(SHEET_CONFIG.token) body.token=SHEET_CONFIG.token;
-    return fetch(SHEET_CONFIG.appsScriptUrl,{method:"POST",mode:"no-cors",body:new URLSearchParams(body)}).then(()=>true).catch(()=>false);
+    return apiPost({ action:"projectSave", id:p.id, name:fileName(p), updatedAt:String(p.updatedAt||Date.now()), json:json }).then(function(r){ return !(r&&r.ok===false); }).catch(function(){ return false; });
   }
   function pushDirty(){
     if(!hasBackend()) return;
@@ -2492,8 +2653,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     tombs[id]=Date.now(); saveTombs();
     delete syncMap[id]; saveSyncMap();
     if(!hasBackend()) return;
-    const q={ action:"projectDelete", id:id }; if(SHEET_CONFIG.token) q.token=SHEET_CONFIG.token;
-    try{ jsonp(SHEET_CONFIG.appsScriptUrl+"?"+new URLSearchParams(q).toString(),15000).catch(function(){}); }catch(_){}
+    try{ apiPost({ action:"projectDelete", id:id }).catch(function(){}); }catch(_){}
   }
   async function pullProjects(){
     if(!hasBackend()) return;
@@ -2527,18 +2687,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const code="PROJLOGO-"+p.id; const BUILDING_FOLDER="1B6XwQi7PqXBT5LkmyQJZpn6bkttw3aNE";
     toast("กำลังอัปโหลดรูปอาคารเข้า Drive…");
     try{
-      const body={ action:"uploadImage", code:code, data:dataUrl, folder:BUILDING_FOLDER };
-      if(SHEET_CONFIG.token) body.token=SHEET_CONFIG.token;
-      await fetch(SHEET_CONFIG.appsScriptUrl,{method:"POST",mode:"no-cors",body:new URLSearchParams(body)});
-      let url="";
-      for(let i=0;i<8 && !url;i++){
-        await new Promise(r=>setTimeout(r,1500));
-        try{ const q={ action:"imageUrl", code:code, folder:BUILDING_FOLDER }; if(SHEET_CONFIG.token) q.token=SHEET_CONFIG.token;
-          const r=await jsonp(SHEET_CONFIG.appsScriptUrl+"?"+new URLSearchParams(q).toString(),15000);
-          if(r&&r.ok&&r.url) url=r.url; }catch(_){}
-      }
+      const r=await apiPost({ action:"uploadImage", code:code, data:dataUrl, folder:BUILDING_FOLDER });
+      const url=(r&&r.url)||"";
       p.cover.logo = url || dataUrl; touch(p); render();
-      toast(url?"อัปโหลดโลโก้แล้ว":"เก็บโลโก้ในเครื่อง", url?"ok":"");
+      toast(url?"อัปโหลดรูปอาคารแล้ว":"เก็บรูปในเครื่อง", url?"ok":"");
     }catch(e){ p.cover.logo=dataUrl; touch(p); render(); }
   }
   function fullSync(){ if(!hasBackend()){ toast("ยังไม่ได้ตั้งค่า Apps Script (ปุ่มเฟือง ⚙)"); return; } toast("กำลังซิงค์โครงการ…"); pushDirty(); pullProjects().then(function(){ toast("ซิงค์โครงการเรียบร้อย","ok"); }); }
@@ -2567,7 +2719,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       section:row.section||"", mainCode:row.mainCode||"", code:row.code||"", desc:row.desc||"",
       size:row.size||"", brand:row.brand||"", link:row.link||"", grade:row.grade||"",
       contact:row.contact||"", price:row.price||"", img:row.img||"",
-      location:"", qty:"", unit:"", a1:"", a2:"", roof:"", note:"" };
+      location:"", qty:"", unit:row.unit||"", labor:row.labor||"", priceDate:row.priceDate||"", std:row.std||"", a1:"", a2:"", roof:"", note:"" };
   }
   function areaOf(it){ return num(it.a1)+num(it.a2)+num(it.roof); }
   function basisOf(it){ const a=areaOf(it); return a>0?a:num(it.qty); }
@@ -2655,7 +2807,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const shown = sortProjects(projects.filter(projMatch));
     const cards = shown.map(p=>{
       const isAct = p.id===activeId;
-      return `<div class="ps-card" data-open="${p.id}">
+      return `<div class="ps-card" data-open="${p.id}" style="${p.cover.ptype?('border-left:4px solid '+ptypeColor(p.cover.ptype)):''}">
         <div class="ps-card-top">
           <span class="ps-code">${E(fileName(p))}</span>
           <span class="ps-badge stg-${E(p.stage||'')}">${E(p.stage||'—')}</span>
@@ -2800,7 +2952,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button class="ps-btn ghost sm" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>โครงการทั้งหมด</button>
         <div class="ps-fnamewrap"><span class="ps-dim ps-mono" style="font-size:11px">ชื่อไฟล์</span><span class="ps-fname ps-mono" id="psFname">${E(fileName(p))}</span></div>
         <div class="ps-detailacts">
-          <button class="ps-btn ${p.id===activeId?'lum':'ghost'} sm" data-setactive>${p.id===activeId?'✓ กำลังเพิ่มเข้าโครงการนี้':'ตั้งเป็นโครงการที่กำลังเพิ่ม'}</button>
+          <button class="ps-btn ${p.id===activeId?'lum':'ghost'} sm" data-setactive>${p.id===activeId?'✓ กำลังเพิ่มเข้าโครงการนี้':'ตั้งเป็นโครงการที่กำลังเพิ่ม'}</button><button class="ps-btn ghost sm" data-freeze title="บันทึกสแนปช็อตเวอร์ชัน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9 4.9 19.1"/></svg>Freeze Rev</button><button class="ps-btn ghost sm" data-revs>Rev (${(p.revisions||[]).length})</button>
           <button class="ps-btn ghost sm" data-sheet><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>ส่งเข้า Sheet</button>
           <button class="ps-btn primary sm" data-xlsx2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>ดาวน์โหลด .xlsx</button>
           <button class="ps-btn primary sm" data-cards><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>ส่งออกเป็นบอร์ดการ์ด</button>
@@ -2819,6 +2971,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             ${fld("แบบเลขที่","drawingNo","")}
             ${fld("เจ้าของอาคาร","owner","")}
             ${fld("ผู้ออกแบบ / บริษัท","designer","")}
+            <div class="ps-field" style="grid-column:1/-1"><label>ประเภทโครงการ</label><div class="ps-ptypes">${PTYPES.map(t=>`<button type="button" class="ps-ptype ${p.cover.ptype===t.k?'on':''}" data-ptype="${t.k}" style="--pc:${t.c}"><span class="dot"></span>${t.n}</button>`).join("")}</div></div>
+            ${fld("ผู้จัดทำ","preparedBy","")}
+            ${fld("ผู้ตรวจ","checkedBy","")}
+            ${fld("ผู้อนุมัติ","approvedBy","")}
           </div>
         </div>
         <div class="ps-cover-r">
@@ -2838,12 +2994,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     root.querySelector("[data-xlsx2]").onclick=()=>exportXlsx(p);
     root.querySelector("[data-cards]").onclick=()=>exportCards(p);
     root.querySelector("[data-sheet]").onclick=()=>exportSheet(p);
+    root.querySelector("[data-freeze]").onclick=()=>freezeRev(p);
+    root.querySelector("[data-revs]").onclick=()=>openRevList(p);
 
     const refreshName=()=>{ const el=$("#psFname"); if(el) el.textContent=fileName(p); };
     root.querySelector("[data-stage]").onchange=e=>{ p.stage=e.target.value; touch(p); refreshName(); };
     root.querySelector("[data-abbr]").addEventListener("input",e=>{ p.abbr=e.target.value; touch(p); refreshName(); });
     root.querySelector("[data-date]").addEventListener("input",e=>{ p.cover.dateISO=e.target.value; touch(p); refreshName(); });
     root.querySelectorAll("[data-cov]").forEach(el=>el.addEventListener("input",e=>{ p.cover[e.target.dataset.cov]=e.target.value; touch(p); }));
+    root.querySelectorAll("[data-ptype]").forEach(b=>b.onclick=()=>{ p.cover.ptype=(p.cover.ptype===b.dataset.ptype)?"":b.dataset.ptype; touch(p); render(); });
 
     const logoInp=root.querySelector("[data-logo]");
     if(logoInp) logoInp.addEventListener("change",e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ uploadProjectLogo(p, rd.result); }; rd.readAsDataURL(f); });
@@ -2861,7 +3020,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     const bn=root.querySelector("[data-buildingname]"); if(bn) bn.addEventListener("input",e=>{ p.cover.buildingName=e.target.value; touch(p); });
 
     root.querySelectorAll("[data-addcat]").forEach(b=>b.onclick=()=>openPicker(p, b.dataset.addcat));
-    root.querySelectorAll("[data-accit]").forEach(b=>b.onclick=()=>{ const it=p.items.find(x=>x.iid===b.dataset.accit); if(it) openRowAcc(p, it); });
 
     // item field edits (delegated)
     root.querySelectorAll(".ps-itab").forEach(tab=>{
@@ -2875,6 +3033,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         clearTimeout(tab._sv); tab._sv=setTimeout(()=>touch(p),400);
       });
       tab.addEventListener("click",e=>{
+        const mdt=e.target.closest("[data-mdt]");
+        if(mdt){ const it=p.items.find(x=>x.iid===mdt.dataset.mdt); if(it && typeof openMaterialDetail==="function") openMaterialDetail(it, it.catId); return; }
         const del=e.target.closest("[data-delit]"); if(!del) return;
         p.items=p.items.filter(x=>x.iid!==del.dataset.delit); touch(p); render();
       });
@@ -2902,11 +3062,34 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     };
     draw(); ov.hidden=false;
   }
+  function revLabel(n){ const L=["0","A","B","C","D","E","F","G","H","I","J"]; return L[n]||("R"+n); }
+  function freezeRev(p){
+    if(!p.revisions) p.revisions=[];
+    const note=prompt("บันทึกการแก้ไข (Revision note) — เช่น ปรับสเปกพื้นตามลูกค้า","");
+    if(note===null) return;
+    const rev=revLabel(p.revisions.length);
+    p.revisions.push({ rev:rev, date:todayISO(), note:(note||"").trim(), total:projTotal(p), count:p.items.length, snapshot:{ cover:JSON.parse(JSON.stringify(p.cover||{})), items:JSON.parse(JSON.stringify(p.items||[])) } });
+    touch(p); render(); toast("Freeze Rev "+rev+" แล้ว","ok");
+  }
+  function openRevList(p){
+    const revs=p.revisions||[]; const ov=ensureOverlay("psRev");
+    ov.innerHTML=`<div class="modal" style="max-width:600px"><div class="modal-h"><h3>ประวัติ Revision — ${E(fileName(p))}</h3><button class="iconbtn" data-x><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-b">${revs.length?`<div class="ps-revlist">${revs.slice().reverse().map(rv=>`<div class="ps-revrow"><div><span class="ps-revtag">Rev ${E(rv.rev)}</span> <span class="ps-dim">${E(rv.date)}</span><div class="ps-dim" style="font-size:12px">${E(rv.note)||"—"} · ${rv.count} รายการ · ฿${fmtB(rv.total)}</div></div><button class="ps-btn ghost sm" data-restore="${E(rv.rev)}">กู้กลับ</button></div>`).join("")}</div>`:`<div class="ps-catempty" style="padding:18px">ยังไม่มี Revision — กด “Freeze Rev” เพื่อบันทึกสแนปช็อต</div>`}</div></div>`;
+    ov.hidden=false;
+    const close=()=>{ ov.hidden=true; };
+    ov.querySelector("[data-x]").onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+    ov.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{
+      const rv=(p.revisions||[]).find(x=>x.rev===b.dataset.restore); if(!rv||!rv.snapshot) return;
+      if(!confirm("กู้ Rev "+rv.rev+" กลับมาเป็นสเปกปัจจุบัน? (แนะนำ Freeze ของปัจจุบันก่อน)")) return;
+      p.cover=JSON.parse(JSON.stringify(rv.snapshot.cover||{})); p.items=JSON.parse(JSON.stringify(rv.snapshot.items||[]));
+      touch(p); close(); render(); toast("กู้ Rev "+rv.rev+" กลับมาแล้ว","ok");
+    });
+  }
   function itemRowHtml(it, p){ const _an=p?p.items.filter(x=>x.acc&&x.parentIid===it.iid).length:0;
     const ip=(f,cls,ph)=>`<input data-iid="${it.iid}" data-f="${f}" class="ps-in ${cls||''}" placeholder="${ph||''}" value="${E(it[f])}"/>`;
     return `<tr>
-      <td class="ps-c-code">${E(it.code)||"—"}</td>
-      <td class="ps-c-desc" title="${E(it.desc)}">${E(it.desc)||"—"}${it.acc?' <span class="ps-acc-tag">อุปกรณ์เสริม</span>':''}</td>
+      <td class="ps-c-code ps-clk" data-mdt="${it.iid}">${E(it.code)||"—"}</td>
+      <td class="ps-c-desc ps-clk" data-mdt="${it.iid}" title="${E(it.desc)}">${E(it.desc)||"—"}${it.acc?' <span class="ps-acc-tag">อุปกรณ์เสริม</span>':''}</td>
       <td>${ip("location","w7","เช่น 01")}</td>
       <td>${ip("qty","w5 num")}</td>
       <td>${ip("unit","w5","")}</td>
@@ -2917,7 +3100,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <td>${ip("price","w7 num")}</td>
       <td class="ps-c-line"><span id="line-${it.iid}">${lineOf(it)?("฿"+fmtB(lineOf(it))):"—"}</span></td>
       <td>${ip("note","w9","")}</td>
-      <td class="ps-c-del">${it.acc?'':`<button class="ps-acc-btn ${_an?'on':''}" data-accit="${it.iid}" title="อุปกรณ์เสริม">+ อุปกรณ์${_an?' ·'+_an:''}</button>`}<button class="ps-del" data-delit="${it.iid}" title="ลบ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
+      <td class="ps-c-del"><button class="ps-del" data-delit="${it.iid}" title="ลบ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
     </tr>`;
   }
 
@@ -3045,15 +3228,29 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   /* ---------- EXPORT: cards (printable, grouped by category) ---------- */
   function gradeBadge(g){ return g?`<span class="bcd-grade g-${E(g).replace('+','p')}">${E(g)}</span>`:""; }
+  const PTYPES=[
+    {k:"commercial",n:"COMMERCIAL",c:"#C0202E"},{k:"community",n:"COMMUNITY",c:"#2E8B6E"},
+    {k:"landscape",n:"LANDSCAPE",c:"#49BEC0"},{k:"hotel",n:"HOTEL",c:"#6B4A38"},
+    {k:"housing",n:"HOUSING",c:"#0A5A8A"},{k:"school",n:"SCHOOL",c:"#E39A1C"},
+    {k:"small",n:"SMALL",c:"#454749"},{k:"competition",n:"COMPETITION",c:"#8E2A8E"}
+  ];
+  function ptypeColor(k){ const t=PTYPES.find(x=>x.k===k); return t?t.c:"#0047AB"; }
   function exportCards(p){
     const cov=p.cover;
-    const used=CATEGORIES.filter(cat=>p.items.some(it=>it.catId===cat.id));
+    const pc=ptypeColor(cov.ptype);
+    const ptypeName=(PTYPES.find(t=>t.k===cov.ptype)||{}).n||"";
+    let used=CATEGORIES.filter(cat=>p.items.some(it=>it.catId===cat.id));
     if(!used.length){ toast("ยังไม่มีวัสดุในโครงการ — เพิ่มวัสดุก่อนส่งออก",""); return; }
+    const pri={F:0,W:1,E:2};
+    used=used.slice().sort((a,b)=>((a.code in pri)?pri[a.code]:9)-((b.code in pri)?pri[b.code]:9));
+    const totalItems=p.items.length, totalVal=projTotal(p), catCount=used.length;
     const secs=used.map(cat=>{
       const items=p.items.filter(it=>it.catId===cat.id);
-      const cards=items.map(it=>{
-        const area=areaOf(it), line=lineOf(it);
-        const img=it.img?`<div class="bcd-img"><img src="${E(it.img)}" alt=""/></div>`:`<div class="bcd-img bcd-noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+      const feaN=(cat.code in pri)?2:1;
+      const cards=items.map((it,idx)=>{
+        const area=areaOf(it), line=lineOf(it), hasImg=!!it.img;
+        const cls = (hasImg && idx<feaN) ? "big" : (hasImg ? "wide" : "norm");
+        const img=hasImg?`<div class="bcd-img"><img src="${E(it.img)}" alt=""/></div>`:`<div class="bcd-img bcd-noimg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>`;
         const meta=[];
         if(it.size) meta.push(["ชนิด/ขนาด",it.size]);
         if(it.brand) meta.push(["แบรนด์",it.brand]);
@@ -3062,66 +3259,67 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         if(area) meta.push(["พื้นที่รวม",fmtB(area)+" ตร.ม."]);
         if(num(it.price)) meta.push(["ราคา/หน่วย","฿"+fmtB(it.price)]);
         if(it.contact) meta.push(["เบอร์เซลล์",it.contact]);
+        if(it.std) meta.push(["มาตรฐาน",it.std]);
         const metaHtml=meta.map(m=>`<div class="bcd-row"><span>${E(m[0])}</span><b>${E(m[1])}</b></div>`).join("");
-        return `<div class="bcd">
-          ${img}
-          <div class="bcd-body">
-            <div class="bcd-top"><span class="bcd-code">${E(it.code)||"—"}</span>${gradeBadge(it.grade)}</div>
-            <div class="bcd-desc">${E(it.desc)||"—"}</div>
-            <div class="bcd-meta">${metaHtml}</div>
-            ${line?`<div class="bcd-total"><span>ราคารวม</span><b>฿${fmtB(line)}</b></div>`:""}
-            ${it.note?`<div class="bcd-note">${E(it.note)}</div>`:""}
-            
-          </div>
-        </div>`;
+        return `<div class="bcd ${cls}">${img}<div class="bcd-body"><div class="bcd-top"><span class="bcd-code">${E(it.code)||"—"}</span>${gradeBadge(it.grade)}</div><div class="bcd-desc">${E(it.desc)||"—"}${it.acc?' <span class="bcd-acc">อุปกรณ์เสริม</span>':''}</div><div class="bcd-meta">${metaHtml}</div>${line?`<div class="bcd-total"><span>ราคารวม</span><b>฿${fmtB(line)}</b></div>`:""}${it.note?`<div class="bcd-note">${E(it.note)}</div>`:""}</div></div>`;
       }).join("");
-      return `<section class="bsec">
-        <div class="bsec-h"><span class="bsec-code">${E(cat.code)}</span><h2>${E(cat.name)}</h2><span class="bsec-n">${items.length} รายการ</span></div>
-        <div class="bgrid">${cards}</div>
-      </section>`;
+      return `<section class="bsec"><div class="bsec-h"><span class="bsec-code" style="background:${pc}">${E(cat.code)}</span><h2>${E(cat.name)}</h2><span class="bsec-n">${items.length} รายการ</span></div><div class="bento">${cards}</div></section>`;
     }).join("");
-
-    const coverMeta=[
-      ["โครงการ",cov.project],["ชื่ออาคาร",cov.buildingName],["สถานที่ก่อสร้าง",cov.site],
-      ["แบบเลขที่",cov.drawingNo],["วันที่",dateThai(cov.dateISO)],
-      ["เจ้าของอาคาร",cov.owner],["ผู้ออกแบบ",cov.designer]
-    ].filter(m=>m[1]).map(m=>`<div class="bc-row"><span>${E(m[0])}</span><b>${E(m[1])}</b></div>`).join("");
-
-    const doc=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"/>
-    <title>${E(fileName(p))} — บอร์ดการ์ด</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+    const infoTiles=[["สถานที่ก่อสร้าง",cov.site],["แบบเลขที่",cov.drawingNo],["วันที่",dateThai(cov.dateISO)],["เจ้าของอาคาร",cov.owner],["ผู้ออกแบบ",cov.designer]].filter(m=>m[1]).map(m=>`<div class="ci-tile"><span>${E(m[0])}</span><b>${E(m[1])}</b></div>`).join("");
+    const doc=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"/><title>${E(fileName(p))} — บอร์ดการ์ด</title><style>
+      @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;}
-      body{font-family:'IBM Plex Sans Thai',sans-serif;color:#0C2340;background:#EEF1F4;padding:32px;}
+      body{font-family:'Anuphan',sans-serif;color:#16181D;background:#EEF1F4;padding:30px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .mono{font-family:'IBM Plex Mono',monospace;}
-      .sheet{max-width:1100px;margin:0 auto;}
-      .bcover{background:#0047AB;color:#fff;border-radius:16px;padding:34px 38px;margin-bottom:26px;display:flex;justify-content:space-between;gap:30px;align-items:flex-start;}
-      .bcover-l{flex:1;}
-      .bcover h1{font-size:13px;font-weight:600;letter-spacing:.16em;opacity:.7;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:6px;}
-      .bcover .fname{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;letter-spacing:.02em;margin-bottom:20px;}
-      .bc-row{display:flex;gap:14px;font-size:14px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.14);}
-      .bc-row span{min-width:120px;opacity:.7;}
-      .bc-row b{font-weight:600;}
-      .bcover-logo{width:150px;height:110px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-      .bcover-logo img{width:100%;height:100%;object-fit:contain;}
-      .bsec{margin-bottom:30px;}
-      .bsec-h{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #0047AB;}
-      .bsec-code{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#fff;background:#0C2340;padding:3px 10px;border-radius:6px;}
-      .bsec-h h2{font-size:19px;font-weight:700;flex:1;}
+      .sheet{max-width:1160px;margin:0 auto;}
+      .bento-cover{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:30px;}
+      .bc-hero{position:relative;border-radius:22px;padding:34px 36px;color:#fff;overflow:hidden;display:flex;flex-direction:column;min-height:300px;background:linear-gradient(140deg, ${pc} 0%, #062B63 130%);}
+      .bc-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 8%, rgba(255,255,255,.28), transparent 46%);pointer-events:none;}
+      .bc-badge{display:flex;gap:8px;position:relative;z-index:1;margin-bottom:18px;}
+      .bc-ptype,.bc-stage{font:600 11px/1 'IBM Plex Mono';letter-spacing:.14em;padding:6px 11px;border-radius:20px;}
+      .bc-ptype{background:rgba(255,255,255,.22);}
+      .bc-stage{background:rgba(0,0,0,.22);}
+      .bc-kicker{font:600 12px/1.4 'IBM Plex Mono';letter-spacing:.18em;text-transform:uppercase;opacity:.72;position:relative;z-index:1;}
+      .bc-fname{font:700 27px/1.1 'IBM Plex Mono';letter-spacing:.02em;margin:6px 0 5px;position:relative;z-index:1;}
+      .bc-proj{font-size:17px;font-weight:600;opacity:.96;position:relative;z-index:1;}
+      .bc-glass{position:relative;z-index:1;margin-top:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:15px;padding:16px 18px;}
+      .bc-bname{font-size:14px;font-weight:600;margin-bottom:11px;}
+      .bc-stats{display:flex;gap:26px;}
+      .bc-stats b{font:700 21px/1 'IBM Plex Mono';display:block;}
+      .bc-stats span{font-size:11px;opacity:.82;}
+      .bc-side{display:flex;flex-direction:column;gap:14px;}
+      .bc-img{border-radius:18px;overflow:hidden;aspect-ratio:4/3;background:#E4EAF0;}
+      .bc-img img{width:100%;height:100%;object-fit:cover;display:block;}
+      .bc-noimg{display:flex;align-items:center;justify-content:center;color:#9AA6B2;font-size:13px;}
+      .ci-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+      .ci-tile{background:#fff;border:1px solid #E3E7EC;border-radius:13px;padding:12px 14px;}
+      .ci-tile span{display:block;font-size:11px;color:#6E737B;margin-bottom:3px;}
+      .ci-tile b{font-size:13.5px;font-weight:600;}
+      .ci-sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:2px;}
+      .ci-sign > div{background:#fff;border:1px solid #E3E7EC;border-radius:12px;padding:11px 12px;min-height:64px;display:flex;flex-direction:column;justify-content:space-between;}
+      .ci-sign span{font-size:10.5px;color:#6E737B;}
+      .ci-sign b{font-size:12.5px;font-weight:600;}
+      .bsec{margin-bottom:26px;}
+      .bsec-h{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+      .bsec-code{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#fff;padding:4px 11px;border-radius:7px;}
+      .bsec-h h2{font-size:19px;font-weight:700;flex:1;letter-spacing:-.01em;}
       .bsec-n{font-size:13px;color:#6E737B;font-family:'IBM Plex Mono',monospace;}
-      .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;}
-      .bcd{background:#fff;border:1px solid #E3E7EC;border-radius:13px;overflow:hidden;display:flex;flex-direction:column;break-inside:avoid;}
+      .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:start;}
+      .bcd{grid-column:span 2;background:#fff;border:1px solid #E3E7EC;border-radius:15px;overflow:hidden;display:flex;flex-direction:column;break-inside:avoid;}
+      .bcd.big{grid-column:span 3;}
       .bcd-img{aspect-ratio:16/10;background:#F4F6F8;overflow:hidden;}
+      .bcd.big .bcd-img{aspect-ratio:16/9;}
       .bcd-img img{width:100%;height:100%;object-fit:cover;display:block;}
       .bcd-noimg{display:flex;align-items:center;justify-content:center;color:#C2C8D0;}
-      .bcd-noimg svg{width:42px;height:42px;}
+      .bcd-noimg svg{width:40px;height:40px;}
       .bcd-body{padding:15px 16px;display:flex;flex-direction:column;gap:9px;}
       .bcd-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-      .bcd-code{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#0047AB;}
+      .bcd-code{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:${pc};}
       .bcd-grade{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(0,71,171,.1);color:#0047AB;}
       .bcd-grade.g-C,.bcd-grade.g-Cp{background:rgba(232,130,12,.14);color:#B8650A;}
       .bcd-grade.g-D,.bcd-grade.g-Dp{background:rgba(215,38,61,.13);color:#D7263D;}
       .bcd-desc{font-size:14.5px;font-weight:600;line-height:1.4;}
+      .bcd-acc{font-size:10.5px;font-weight:600;color:#B26A00;background:#FFF1E0;padding:1px 7px;border-radius:6px;}
       .bcd-meta{display:flex;flex-direction:column;gap:3px;}
       .bcd-row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;}
       .bcd-row span{color:#6E737B;}
@@ -3129,30 +3327,35 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       .bcd-total{display:flex;justify-content:space-between;align-items:center;margin-top:3px;padding-top:9px;border-top:1px solid #E3E7EC;}
       .bcd-total span{font-size:12.5px;color:#6E737B;}
       .bcd-total b{font-family:'IBM Plex Mono',monospace;font-size:16px;color:#E8820C;}
-      .bcd-note{font-size:12px;color:#6E737B;background:#F4F6F8;padding:7px 9px;border-radius:7px;}
-      .bcd-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0047AB;word-break:break-all;}
-      .bprint{position:fixed;top:18px;right:18px;display:flex;gap:10px;z-index:50;}
-      .bprint button{font-family:'IBM Plex Sans Thai',sans-serif;font-size:14px;font-weight:600;padding:11px 20px;border-radius:10px;border:none;cursor:pointer;background:#0047AB;color:#fff;box-shadow:0 4px 14px rgba(0,71,171,.3);}
-      @media print{ body{background:#fff;padding:0;} .bprint{display:none;} .bcover{border-radius:0;} .bsec{break-inside:avoid;} }
+      .bcd-note{font-size:12px;color:#6E737B;background:#F4F6F8;padding:7px 9px;border-radius:8px;}
+      .bprint{position:fixed;top:18px;right:18px;z-index:50;}
+      .bprint button{font-family:'Anuphan',sans-serif;font-size:14px;font-weight:600;padding:11px 20px;border-radius:11px;border:none;cursor:pointer;background:${pc};color:#fff;box-shadow:0 6px 18px rgba(6,43,99,.3);}
+      @media print{ body{background:#fff;padding:0;} .bprint{display:none;} .bento-cover{padding:0;} .bsec,.bcd{break-inside:avoid;} }
+      @media(max-width:820px){ .bento-cover{grid-template-columns:1fr;} .bento{grid-template-columns:repeat(4,1fr);} .bcd,.bcd.big{grid-column:span 2;} }
     </style></head><body>
       <div class="bprint"><button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button></div>
       <div class="sheet">
-        <div class="bcover">
-          <div class="bcover-l">
-            <h1>รายการประกอบแบบก่อสร้าง · ${E(p.stage)}</h1>
-            <div class="fname">${E(fileName(p))}</div>
-            ${coverMeta||'<div class="bc-row"><span>—</span></div>'}
+        <div class="bento-cover">
+          <div class="bc-hero">
+            <div class="bc-badge">${ptypeName?`<span class="bc-ptype">${E(ptypeName)}</span>`:''}<span class="bc-stage">${E(p.stage)}</span></div>
+            <div class="bc-kicker">รายการประกอบแบบก่อสร้าง</div>
+            <div class="bc-fname">${E(fileName(p))}</div>
+            <div class="bc-proj">${E(cov.project||'')}</div>
+            <div class="bc-glass">${cov.buildingName?`<div class="bc-bname">${E(cov.buildingName)}</div>`:''}<div class="bc-stats"><div><b>${totalItems}</b><span>รายการ</span></div><div><b>${catCount}</b><span>หมวด</span></div>${totalVal?`<div><b>฿${fmtB(totalVal)}</b><span>มูลค่ารวม</span></div>`:''}</div></div>
           </div>
-          ${cov.logo?`<div class="bcover-logo"><img src="${E(cov.logo)}" alt=""/></div>`:""}
+          <div class="bc-side">
+            ${cov.logo?`<div class="bc-img"><img src="${E(cov.logo)}" alt=""/></div>`:`<div class="bc-img bc-noimg">รูปอาคาร</div>`}
+            <div class="ci-grid">${infoTiles}</div>
+            ${(cov.preparedBy||cov.checkedBy||cov.approvedBy)?`<div class="ci-sign"><div><span>ผู้จัดทำ</span><b>${E(cov.preparedBy||"—")}</b></div><div><span>ผู้ตรวจ</span><b>${E(cov.checkedBy||"—")}</b></div><div><span>ผู้อนุมัติ</span><b>${E(cov.approvedBy||"—")}</b></div></div>`:""}
+          </div>
         </div>
         ${secs}
       </div>
     </body></html>`;
-
     const w=window.open("","_blank");
     if(!w){ toast("เบราว์เซอร์บล็อกหน้าต่างใหม่ — อนุญาต popup ก่อน",""); return; }
     w.document.open(); w.document.write(doc); w.document.close();
-    toast("เปิดบอร์ดการ์ดแล้ว — กดพิมพ์เพื่อบันทึก PDF","ok");
+    toast("เปิดบอร์ดการ์ด (bento) แล้ว — กดพิมพ์เพื่อบันทึก PDF","ok");
   }
 
   /* ---------- EXPORT: Apps Script ---------- */
@@ -3163,22 +3366,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     }
     const cats=CATEGORIES.map((c,i)=>({n:i+1,code:c.code,name:c.name}));
     const name=fileName(p);
-    const b={ action:"createProject", name:name, payload:JSON.stringify(p), cats:JSON.stringify(cats) };
-    if(SHEET_CONFIG.token) b.token=SHEET_CONFIG.token;
     toast("กำลังส่งเข้า Google Drive…");
-    try{
-      await fetch(SHEET_CONFIG.appsScriptUrl,{method:"POST",mode:"no-cors",body:new URLSearchParams(b)});
-    }catch(e){ toast("ส่งไม่สำเร็จ: "+(e.message||e),""); return; }
-    // สร้างเสร็จ → ดึงลิงก์ไฟล์กลับมาด้วย JSONP (รองรับโปรเจกต์ใหญ่/ payload ยาว)
     let url="";
-    for(let i=0;i<8 && !url;i++){
-      await new Promise(r=>setTimeout(r,1600));
-      try{
-        const q={action:"projectUrl",name:name}; if(SHEET_CONFIG.token) q.token=SHEET_CONFIG.token;
-        const r=await jsonp(SHEET_CONFIG.appsScriptUrl+"?"+new URLSearchParams(q).toString(),15000);
-        if(r&&r.ok&&r.url) url=r.url;
-      }catch(_){}
-    }
+    try{
+      const r=await apiPost({ action:"createProject", name:name, payload:JSON.stringify(p), cats:JSON.stringify(cats) });
+      if(r&&r.url) url=r.url;
+    }catch(e){ toast("ส่งไม่สำเร็จ: "+(e.message||e),""); return; }
     if(url) psLinkModal(name,url);
     else toast("ส่งเข้า Google Drive แล้ว — เปิดดูในโฟลเดอร์ปลายทาง","ok");
   }
