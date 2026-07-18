@@ -338,6 +338,62 @@ tr.grp td{background:#F4F2EC;}
 
 body.ro .act-edit,body.ro .act-del,body.ro .act-copy,body.ro #btnAdd,body.ro #btnTrash,body.ro #mEdit,body.ro #mCopy,body.ro #mAcc,body.ro [data-delacc],body.ro #projSheet{display:none !important;}
 .tdthumb{display:inline-block;width:26px;height:26px;border-radius:6px;background-size:cover;background-position:center;vertical-align:middle;margin-right:7px;background-color:#eef3fb;}
+
+/* project detail (V3-style) */
+.pd-top{display:flex;align-items:flex-end;gap:14px;margin:16px 0 10px;}
+.pd-name{flex:1;display:flex;flex-direction:column;gap:3px;}
+.pd-name label{font-size:11px;color:var(--gray);}
+.pd-name input{font-weight:800;font-size:17px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--deep);}
+.pd-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.pd-panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;}
+.pd-kick{font-family:var(--mono);color:#E8820C;font-weight:700;font-size:12.5px;letter-spacing:.06em;margin-bottom:14px;}
+.pd-grid{display:grid;grid-template-columns:1fr 270px;gap:22px;}
+@media(max-width:800px){.pd-grid{grid-template-columns:1fr;}}
+.pd-lb{font-size:12.5px;font-weight:600;color:var(--ink);display:block;margin:12px 0 6px;}
+.ptwrap{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.ptdot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:7px;}
+.pd-side{display:flex;flex-direction:column;gap:9px;}
+.pd-img{height:170px;border:1px dashed var(--line);border-radius:14px;background:#fafbfc center/cover;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:13px;}
+.pd-stats{display:flex;gap:9px;}
+.pd-stats .ps{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+.pd-stats label{font-size:11px;color:var(--gray);display:block;}
+.pd-stats b{font-size:20px;color:var(--deep);font-family:var(--mono);}
+/* board */
+#boardOv{position:fixed;inset:0;z-index:3000;background:#f6f7f9;overflow:auto;padding:26px 34px 60px;}
+#boardOv .btop{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:sticky;top:-26px;background:#f6f7f9;padding:12px 0;z-index:5;}
+#boardOv .bhead{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 22px;margin-bottom:18px;}
+#boardOv .bsec h3{color:var(--deep);padding-left:12px;margin:22px 0 10px;}
+#boardOv .bsec h3 small{color:var(--gray);font-weight:500;font-size:12.5px;}
+#boardOv .bgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:1000px){#boardOv .bgrid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:680px){#boardOv .bgrid{grid-template-columns:repeat(2,1fr);}}
+#boardOv .bcard{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;break-inside:avoid;}
+#boardOv .bimg{aspect-ratio:4/3;background-color:#eef3fb;background-size:cover;background-position:center;}
+#boardOv .bbody{padding:10px 12px;}
+#boardOv .brow{display:flex;justify-content:space-between;align-items:baseline;}
+#boardOv .bcode{font-weight:800;color:var(--deep);}
+#boardOv .bprice{font-weight:700;color:var(--blue);font-size:13px;}
+#boardOv .bdesc{font-size:12.5px;margin:4px 0 2px;line-height:1.45;}
+#boardOv .bmeta{font-size:11.5px;color:var(--gray);}
+@media print{
+  body.pr-board > :not(#boardOv){display:none !important;}
+  body.pr-board #boardOv{position:static;background:#fff;padding:0;}
+  body.pr-board #boardOv .btop{display:none !important;}
+  body.pr-board #boardOv .bgrid{grid-template-columns:repeat(3,1fr);}
+}
+
+/* compact cards (V4.02) */
+.cards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr)) !important;gap:12px !important;margin-bottom:16px;}
+.pcard .thumb{height:auto !important;aspect-ratio:4/3 !important;}
+.pcard .body{padding:11px !important;gap:4px !important;}
+.pcard .cdesc{margin:0;font-size:12.8px;line-height:1.45;color:var(--deep);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;}
+.pcard .cmeta{color:var(--gray);font-size:11.5px;}
+.pcard .clinks .ext{font-size:11px;padding:2px 7px;}
+.pcard .rowact{margin-top:5px;}
+.pcard .rowact .ic{width:26px;height:26px;font-size:12px;}
+.pcard .gpill{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.93);color:var(--deep);font-weight:700;box-shadow:0 2px 6px rgba(6,43,99,.18);}
+.cardsec{display:flex;align-items:center;gap:9px;font-weight:800;color:var(--deep);font-size:14px;margin:16px 2px 10px;padding-left:11px;border-left:4px solid var(--blue);}
+.cardsec span{font-family:var(--mono);font-size:11px;background:#eef3fb;color:var(--blue);border-radius:999px;padding:2px 9px;}
 </style>
 </head>
 <body>
@@ -575,7 +631,11 @@ const SHEETS=[
 ];
 function gvizLoad(id,tab){ return new Promise((res,rej)=>{ const cb="__g"+Math.random().toString(36).slice(2); const sc=document.createElement("script"); const t=setTimeout(()=>{cleanup();rej()},20000); function cleanup(){try{delete window[cb]}catch(_){window[cb]=undefined} sc.remove(); clearTimeout(t);} window[cb]=d=>{cleanup();res(d)}; sc.onerror=()=>{cleanup();rej()}; sc.src="https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?headers=1&sheet="+encodeURIComponent(tab)+"&tqx=out:json;responseHandler:"+cb; document.body.appendChild(sc); }); }
 function gvizVals(d){ try{ const tb=d.table; const cols=(tb.cols||[]).map(c=>String(c.label||"")); const rows=(tb.rows||[]).map(r=>(r.c||[]).map(c=>c?(c.f!=null?String(c.f):(c.v!=null?String(c.v):"")):"")); return [cols].concat(rows); }catch(_){ return []; } }
-async function loadLive(){ const tasks=[]; SHEETS.forEach(sh=>sh.tabs.forEach(tab=>tasks.push(gvizLoad(sh.id,tab).then(d=>({name:tab,disc:sh.disc,values:gvizVals(d)})).catch(()=>null)))); const arr=await Promise.all(tasks); return arr.filter(x=>x&&x.values.length>1); }
+async function loadLive(){ const tasks=[]; SHEETS.forEach(sh=>sh.tabs.forEach(tab=>tasks.push(gvizLoad(sh.id,tab).then(d=>({name:tab,disc:sh.disc,sid:sh.id,values:gvizVals(d)})).catch(()=>null))));
+  const arr=(await Promise.all(tasks)).filter(x=>x&&x.values.length>1);
+  const seen={}, out=[];
+  for(const x of arr){ const key=x.sid+"|"+JSON.stringify(x.values.slice(0,3))+"|"+x.values.length; if(seen[key])continue; seen[key]=1; out.push(x); }
+  return out; }
 
 function saveCache(d){ try{ localStorage.setItem("mafc_cache",JSON.stringify(d)); }catch(_){ } }
 function loadCache(){ try{ const d=JSON.parse(localStorage.getItem("mafc_cache")||"null"); if(d&&d.sheets&&d.sheets.length)return d; }catch(_){ } return null; }
@@ -750,23 +810,28 @@ function tableHtml(rows){
   return `<table><thead><tr><th>รหัส</th><th>รายละเอียด</th><th>ราคา</th><th>แบรนด์</th><th>ลิงก์</th><th></th></tr></thead><tbody>${body}</tbody></table>`;
 }
 function cardsHtml(rows){
-  return `<div class="cards">`+rows.map(r=>`
+  const secs=[...new Set(rows.map(r=>r.section))];
+  const card=r=>{ const u=imgSrc(r); return `
     <div class="pcard" data-code="${esc(r.code)}">
-      <div class="thumb" ${imgSrc(r)?`data-thumb="${esc(imgSrc(r))}"`:""} style="position:relative${imgSrc(r)?`;background-image:url('${esc(imgSrc(r))}');cursor:zoom-in`:""}">${r.grade?`<span class="pill" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.92);color:var(--deep);font-weight:700;box-shadow:0 2px 6px rgba(6,43,99,.18)">เกรด ${esc(r.grade)}</span>`:""}</div>
+      <div class="thumb" ${u?`data-thumb="${esc(u)}"`:""} style="position:relative${u?`;background-image:url('${esc(u)}');cursor:zoom-in`:""}">${r.grade?`<span class="pill gpill">เกรด ${esc(r.grade)}</span>`:""}</div>
       <div class="body">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span class="code mono" style="font-weight:800;color:var(--deep)">${esc(r.code)}</span>
-          <span class="price mono" style="font-weight:800">${priceTxt(r)}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+          <span class="code mono" style="font-weight:800;color:var(--deep);font-size:13px">${esc(r.code)}</span>
+          <span class="price mono" style="font-weight:800;font-size:13px">${priceTxt(r)}</span>
         </div>
-        <h4>${esc(r.desc)||"—"}</h4>
-        <div style="color:var(--gray);font-size:13px">${esc(r.brand)||""} ${r.size?`· ${esc(r.size)}`:""}</div>
-        <div style="margin-top:4px">${extLink(r.link,"เปิดสินค้า")}${extLink(r.bim,"BIM MODEL","bim")}</div>
-        <div class="rowact" style="margin-top:8px">
-          <span class="ic act-detail">${ICN("eye")}</span><span class="ic act-edit">${ICN("edit")}</span><span class="ic act-copy">${ICN("copy")}</span><span class="ic act-proj">${ICN("cart")}</span><span class="ic act-del">${ICN("trash")}</span>
-          <label class="ic" style="cursor:pointer;${state.cmp.includes(r.code)?"color:var(--blue);border-color:var(--blue)":""}"><input type="checkbox" class="act-cmp" ${state.cmp.includes(r.code)?"checked":""} style="display:none">${ICN(state.cmp.includes(r.code)?"check":"swap")}</label>
+        <h4 class="cdesc">${esc(r.desc)||"—"}</h4>
+        <div class="cmeta">${esc(r.brand)||""}${r.size?` · ${esc(r.size)}`:""}</div>
+        <div class="clinks">${extLink(r.link,"สินค้า")}${extLink(r.bim,"BIM","bim")}</div>
+        <div class="rowact">
+          <span class="ic act-detail">👁</span><span class="ic act-edit">✎</span><span class="ic act-copy">⧉</span><span class="ic act-proj">🛒</span><span class="ic act-del">🗑</span>
+          <label class="ic" style="cursor:pointer"><input type="checkbox" class="act-cmp" ${state.cmp.includes(r.code)?"checked":""} style="display:none">${state.cmp.includes(r.code)?"✓":"⇄"}</label>
         </div>
       </div>
-    </div>`).join("")+`</div>`;
+    </div>`; };
+  return secs.map(sec=>{
+    const rs=rows.filter(r=>r.section===sec);
+    return `${sec?`<div class="cardsec">${esc(sec)}<span>${rs.length}</span></div>`:""}<div class="cards">${rs.map(card).join("")}</div>`;
+  }).join("");
 }
 function findRow(code){ return curRows().find(r=>r.code===code); }
 function findRowAll(code){ let r=curRows().find(x=>x.code===code); if(r)return r; for(const k in ROWS){ const f=ROWS[k].find(x=>x.code===code); if(f)return f; } return null; }
@@ -963,47 +1028,101 @@ function renderProjList(){
   $("#pNew").onclick=()=>{ newProject(); viewPid=activePid; renderProjects(); };
   $$("#projBody [data-pid]").forEach(el=>el.onclick=()=>{ viewPid=activePid=el.dataset.pid; renderProjects(); });
 }
+function boqHtml(p){
+  let total=0, body="";
+  const groups=[...new Set(p.items.map(i=>(i.catCode||"")+" · "+(i.catName||i.catId||"")+" › "+(i.section||"")))];
+  if(!p.items.length){ return `<div class="state"><div class="em">🛒</div>ยังไม่มีวัสดุ — เข้าไปในหมวดแล้วกด 🛒 ใส่โครงการ</div>`; }
+  body=`<div style="overflow:auto"><table><thead><tr><th>รหัส</th><th>รายการ</th><th>ห้อง/ตำแหน่ง</th><th>จำนวน</th><th>หน่วย</th><th>ชั้น1</th><th>ชั้น2</th><th>หลังคา</th><th>รวมพื้นที่</th><th>ราคา/หน่วย</th><th>รวม</th><th></th></tr></thead><tbody>`;
+  groups.forEach(g=>{ body+=`<tr class="pgrp"><td colspan="12">${esc(g)}</td></tr>`;
+    p.items.forEach((it,idx)=>{ if((it.catCode||"")+" · "+(it.catName||it.catId||"")+" › "+(it.section||"")!==g)return;
+      const area=nprice(it.a1)+nprice(it.a2)+nprice(it.roof); const basis=area>0?area:nprice(it.qty); const line=basis*nprice(it.price); total+=line;
+      const inp=(k,w)=>`<input class="qty" style="width:${w||58}px" data-pi="${idx}" data-pk="${k}" value="${esc(it[k]||'')}">`;
+      body+=`<tr><td class="code">${esc(it.code)}</td><td>${esc(it.desc)}</td><td>${inp("location",96)}</td><td>${inp("qty")}</td><td>${inp("unit",50)}</td><td>${inp("a1")}</td><td>${inp("a2")}</td><td>${inp("roof")}</td><td class="price">${area?area.toLocaleString():"—"}</td><td class="price">${it.price?esc(it.price):"—"}</td><td class="price">${line?line.toLocaleString():"—"}</td><td><span class="ic" data-rm="${idx}">🗑</span></td></tr>`; });
+  });
+  body+=`</tbody><tfoot><tr><td colspan="10" style="text-align:right;font-weight:800">รวมทั้งหมด</td><td class="price" style="font-weight:800">${total.toLocaleString()} ฿</td><td></td></tr></tfoot></table></div>`;
+  return body;
+}
+function openBoard(p){
+  let ov=document.getElementById("boardOv"); if(ov)ov.remove();
+  ov=document.createElement("div"); ov.id="boardOv"; document.body.appendChild(ov);
+  const cv=p.cover||{}; const pm=ptypeMeta(cv.ptype); const accent=pm[2]||"#0047AB";
+  const logo=((document.querySelector("#projLogo,.hnav .brand img,#hero img")||{}).src)||"";
+  const rooms=[...new Set(p.items.map(it=>String(it.location||"").trim()))];
+  const grp=r=>p.items.filter(it=>String(it.location||"").trim()===r);
+  const card=it=>{ const u=imgSrc(it); return `<div class="bcard"><div class="bimg" style="${u?`background-image:url('${u}')`:""}"></div><div class="bbody"><div class="brow"><span class="mono bcode">${esc(it.code)}</span><span class="mono bprice">${it.price?esc(it.price)+" ฿":""}</span></div><div class="bdesc">${esc(it.desc||"")}</div><div class="bmeta">${esc(it.brand||"")}${it.size?" · "+esc(it.size):""}</div></div></div>`; };
+  ov.innerHTML=`<div class="btop noprint"><div class="mono" style="color:var(--gray);font-size:12.5px">บอร์ดการ์ด · อ้างอิงห้อง/ตำแหน่ง</div><div style="margin-left:auto;display:flex;gap:8px"><button class="btn" id="bPrint">🖨 พิมพ์ / PDF</button><button class="btn ghost" id="bClose">✕ ปิด</button></div></div>
+  <div class="bhead">${logo?`<img src="${logo}" style="height:36px">`:""}<div><div class="mono" style="font-weight:700;letter-spacing:.1em;color:var(--deep);font-size:12px">MA.FC GROUP · CENTRAL SPEC</div><h2 style="margin:2px 0;color:var(--deep)">${esc(cv.project||p.name)}</h2><div style="color:var(--gray);font-size:13px">${esc(cv.buildingName||"")}${cv.site?" · "+esc(cv.site):""}</div></div><span style="margin-left:auto;font-family:var(--mono);color:#fff;background:${accent};padding:6px 16px;border-radius:99px;font-size:13px">${esc(pm[1]||"PROJECT")} · ${esc(p.stage||"—")}</span></div>
+  ${rooms.map(r=>`<div class="bsec"><h3 style="border-left:5px solid ${accent}">${esc(r||"ไม่ระบุห้อง/ตำแหน่ง")} <small>${grp(r).length} รายการ</small></h3><div class="bgrid">${grp(r).map(card).join("")}</div></div>`).join("")}`;
+  document.getElementById("bClose").onclick=()=>ov.remove();
+  document.getElementById("bPrint").onclick=()=>printWith("pr-board");
+  ov.scrollTop=0;
+}
 function renderProjDetail(p){
   const host=$("#projBody"); const cv=p.cover||{};
-  const cf=[["project","ชื่อโครงการ"],["buildingName","ชื่ออาคาร"],["site","สถานที่ก่อสร้าง"],["drawingNo","แบบเลขที่"],["dateISO","วันที่"],["owner","เจ้าของอาคาร"],["designer","ผู้ออกแบบ"],["preparedBy","ผู้จัดทำ"],["buildingType","ประเภทอาคาร"],["floors","จำนวนชั้นอาคาร"],["gfa","พื้นที่ GFA รวม (ตร.ม.)"]];
-  const _plogo=((document.querySelector('#projLogo,#hero img,.brand img')||{}).src)||"";
-  const ptypeBtns=PTYPES.map(t=>{ const on=cv.ptype===t[0]; return `<button class="ptbtn" data-pt="${t[0]}" style="display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:transparent;padding:6px 4px;width:92px;cursor:pointer"><span style="width:62px;height:62px;border-radius:50%;background:${t[2]};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px ${t[2]}55, inset 0 1px 0 rgba(255,255,255,.35);${on?'outline:3px solid var(--deep);outline-offset:3px':''}">${_plogo?`<img src="${_plogo}" style="height:32px;width:auto;filter:brightness(0) invert(1)">`:'<span style="color:#fff;font-weight:700;font-size:11px">MA.FC</span>'}</span><span style="font-size:10px;font-weight:${on?700:500};color:${on?'var(--deep)':'var(--gray)'};text-align:center;line-height:1.2">${t[1]}</span></button>`; }).join("");
-  let total=0, body=""; const groups=[...new Set(p.items.map(i=>(i.catCode||"")+" · "+(i.catName||i.catId||"")+" › "+(i.section||"")))];
-  if(!p.items.length){ body=`<div class="state"><div class="em">🛒</div>ยังไม่มีวัสดุ — เข้าไปในหมวดแล้วกด 🛒 ใส่โครงการ</div>`; }
-  else{ body=`<div style="overflow:auto"><table><thead><tr><th>รหัส</th><th>รายการ</th><th>ตำแหน่ง</th><th>จำนวน</th><th>หน่วย</th><th>ชั้น1</th><th>ชั้น2</th><th>หลังคา</th><th>รวมพื้นที่</th><th>ราคา/หน่วย</th><th>รวม</th><th></th></tr></thead><tbody>`;
-    groups.forEach(g=>{ body+=`<tr class="pgrp"><td colspan="12">${esc(g)}</td></tr>`;
-      p.items.forEach((it,idx)=>{ if((it.catCode||"")+" · "+(it.catName||it.catId||"")+" › "+(it.section||"")!==g)return;
-        const area=nprice(it.a1)+nprice(it.a2)+nprice(it.roof); const basis=area>0?area:nprice(it.qty); const line=basis*nprice(it.price); total+=line;
-        const inp=(k,w)=>`<input class="qty" style="width:${w||58}px" data-pi="${idx}" data-pk="${k}" value="${esc(it[k]||'')}">`;
-        body+=`<tr><td class="code">${esc(it.code)}</td><td>${esc(it.desc)}</td><td>${inp("location",90)}</td><td>${inp("qty")}</td><td>${inp("unit",50)}</td><td>${inp("a1")}</td><td>${inp("a2")}</td><td>${inp("roof")}</td><td class="price">${area?area.toLocaleString():"—"}</td><td class="price">${it.price?esc(it.price):"—"}</td><td class="price">${line?line.toLocaleString():"—"}</td><td><span class="ic" data-rm="${idx}">🗑</span></td></tr>`; });
-    });
-    body+=`</tbody><tfoot><tr><td colspan="10" style="text-align:right;font-weight:800">รวมทั้งหมด</td><td class="price" style="font-weight:800">${total.toLocaleString()} ฿</td><td></td></tr></tfoot></table></div>`;
-  }
-  const floorsN=Math.max(0,Math.min(80,parseInt(cv.floors)||0));
-  const cfa=cv.cfa||{};
-  const cfaBlock=floorsN>0?`<div class="form" style="margin:6px 0 8px">`+Array.from({length:floorsN},(_,i)=>{const fl=i+1;return `<div class="f"><label>CFA ชั้น ${fl} (ตร.ม.)</label><input data-cfa="${fl}" class="mono" value="${esc(cfa[fl]||'')}"/></div>`;}).join("")+`</div>`:`<div style="color:var(--gray);font-size:12.5px;margin:4px 0 10px">— ระบุ "จำนวนชั้นอาคาร" ด้านบนก่อน จึงจะกรอกพื้นที่ CFA รายชั้นได้ —</div>`;
-  const rooms=p.rooms||[];
-  const flOpts=(sel)=>Array.from({length:Math.max(floorsN,1)},(_,i)=>{const fl=i+1;return `<option ${String(sel)===String(fl)?"selected":""}>${fl}</option>`;}).join("");
-  const roomBody=rooms.length?`<div style="overflow:auto"><table><thead><tr><th>เลขห้อง</th><th>ชั้น</th><th>ลำดับ</th><th>ชื่อห้อง</th><th>พื้นที่ (ตร.ม.)</th><th>รูป</th><th></th></tr></thead><tbody>`+rooms.map((rm,idx)=>{const num=(rm.floor||"")+String(rm.seq||"").padStart(2,"0");const im=imgSrc(rm);return `<tr><td class="code">${esc(num)}</td><td><select data-room="${idx}" data-rk="floor" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px">${flOpts(rm.floor)}</select></td><td><input class="qty" data-room="${idx}" data-rk="seq" value="${esc(rm.seq||'')}" style="width:56px"></td><td><input data-room="${idx}" data-rk="name" value="${esc(rm.name||'')}" placeholder="เช่น ห้องรับแขก" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:150px"></td><td><input class="qty" data-room="${idx}" data-rk="area" value="${esc(rm.area||'')}"></td><td><div style="display:flex;align-items:center;gap:6px"><div ${im?`data-thumb="${esc(im)}"`:""} style="width:40px;height:40px;border-radius:8px;background:#F4F2EC${im?`;background-image:url('${esc(im)}');background-size:cover;background-position:center;cursor:zoom-in`:""};border:1px solid #ECEAE3;flex:0 0 auto"></div><input data-room="${idx}" data-rk="img" class="mono" placeholder="ลิงก์รูป" value="${esc(rm.img||'')}" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:150px"></div></td><td><span class="ic" data-roomrm="${idx}" title="ลบห้อง">${ICN("trash")}</span></td></tr>`;}).join("")+`</tbody></table></div>`:`<div style="color:var(--gray);font-size:13px;margin:6px 0">— ยังไม่มีห้อง กด "＋ เพิ่มห้อง" —</div>`;
-  const extra=`<div class="noprint" style="border-top:1px solid var(--line);margin-top:8px;padding-top:14px"><div style="font-weight:700;color:var(--deep);font-size:14px;margin-bottom:8px">พื้นที่ CFA แต่ละชั้น</div>${cfaBlock}</div><div class="noprint" style="border-top:1px solid var(--line);margin-top:8px;padding-top:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px"><div style="font-weight:700;color:var(--deep);font-size:14px">รายการห้อง (Room Schedule)</div><button class="btn ghost" id="roomAdd" style="padding:7px 14px">＋ เพิ่มห้อง</button></div><div style="color:var(--gray);font-size:12px;margin-bottom:8px">เลขห้อง = ชั้น + ลำดับ 2 หลัก (เช่น ชั้น 1 ลำดับ 01 → 101 ห้องรับแขก)</div>${roomBody}</div>`;
-  host.innerHTML=`<div style="display:flex;gap:10px;align-items:center;margin:16px 0" class="noprint"><button class="btn ghost" id="pBackList">← โครงการทั้งหมด</button>
-    <input id="pName" value="${esc(p.name)}" style="font-weight:800;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;flex:1">
-    <select id="pStage" class="mono" style="width:100px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff">${["","PD","DP","DD","CD1","CD2","VE"].concat((p.stage&&!["PD","DP","DD","CD1","CD2","VE"].includes(p.stage))?[p.stage]:[]).map(s=>`<option value="${esc(s)}" ${p.stage===s?"selected":""}>${s?esc(s):"— Stage —"}</option>`).join("")}</select></div>
-    <div class="noprint" style="margin:0 0 8px"><label style="font-size:12.5px;color:var(--gray)">ประเภทโครงการ</label><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="ptRow">${ptypeBtns}</div></div>
-    <div class="noprint" style="margin:10px 0"><label style="font-size:12.5px;color:var(--gray)">รูปโครงการ</label><div style="display:flex;gap:12px;align-items:center;margin-top:6px"><div id="projCoverDrop" title="คลิกหรือลากรูปมาวาง" ${cv.coverImg?`data-thumb="${esc(imgSrc({img:cv.coverImg}))}"`:""} style="width:128px;height:78px;border-radius:12px;background:#F4F2EC${cv.coverImg?`;background-image:url('${esc(imgSrc({img:cv.coverImg}))}');background-size:cover;background-position:center;cursor:zoom-in`:";cursor:pointer"};border:1px solid #ECEAE3;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#C4C0B6;font-size:22px;transition:border-color .15s">${cv.coverImg?"":"🏗"}</div><input type="file" id="projCoverFile" accept="image/*" style="display:none"><input data-cv="coverImg" value="${esc(cv.coverImg||'')}" placeholder="วางลิงก์รูปโครงการ (URL) — ใช้เป็นภาพหน้าปกการนำเสนอ" class="mono" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px"></div></div>
-    <div class="form" style="margin:14px 0">`+cf.map(f=>`<div class="f"><label>${f[1]}</label><input data-cv="${f[0]}" value="${esc(cv[f[0]]||'')}"/></div>`).join("")+`</div>`+extra+body+
-    `<div style="height:70px"></div>`;
+  const total=p.items.reduce((a,it)=>{ const area=nprice(it.a1)+nprice(it.a2)+nprice(it.roof); const basis=area>0?area:nprice(it.qty); return a+basis*nprice(it.price); },0);
+  const F=(k,l,ph)=>`<div class="f"><label>${l}</label><input data-cv="${k}" value="${esc(cv[k]||'')}" placeholder="${ph||''}"/></div>`;
+  const pt=PTYPES.map(t=>`<button class="ptbtn" data-pt="${t[0]}" style="${cv.ptype===t[0]?`background:${t[2]};border-color:${t[2]};color:#fff`:""}"><span class="ptdot" style="background:${t[2]}"></span>${t[1]}</button>`).join("");
+  const im=cv.coverImg?imgSrc({img:cv.coverImg}):"";
+  host.innerHTML=`
+  <div class="pd-top noprint">
+    <button class="btn ghost" id="pBackList">‹ โครงการทั้งหมด</button>
+    <div class="pd-name"><label>ชื่อไฟล์</label><input id="pName" class="mono" value="${esc(p.name)}"></div>
+  </div>
+  <div class="pd-actions noprint">
+    <button class="btn ghost" id="pActive">${activePid===p.id?"✓ โครงการที่กำลังเพิ่ม":"ตั้งเป็นโครงการที่กำลังเพิ่ม"}</button>
+    <button class="btn ghost" id="pSheet2">▦ ส่งเข้า Sheet</button>
+    <button class="btn" id="pCsv2">⬇ ดาวน์โหลด CSV</button>
+    <button class="btn" id="pBoard" style="background:var(--blue)">▦ ส่งออกเป็นบอร์ดการ์ด</button>
+  </div>
+  <div class="pd-panel">
+    <div class="pd-kick">หน้าปก — รายการประกอบแบบก่อสร้าง</div>
+    <div class="pd-grid">
+      <div>
+        <div class="form">
+          <div class="f"><label>ขั้นตอน (Stage)</label><input id="pStage" class="mono" value="${esc(p.stage||'')}"></div>
+          ${F("abbr","ตัวย่อโครงการ","เช่น RSL")}
+          ${F("dateISO","วันที่")}
+          ${F("buildingName","ชื่ออาคาร","เช่น บ้านพักอาศัย ค.ส.ล. 2 ชั้น")}
+          <div class="f full"><label>ชื่อโครงการ</label><input data-cv="project" value="${esc(cv.project||'')}"></div>
+          ${F("site","สถานที่ก่อสร้าง")}
+          ${F("drawingNo","แบบเลขที่")}
+          ${F("owner","เจ้าของอาคาร")}
+          ${F("designer","ผู้ออกแบบ / บริษัท")}
+        </div>
+        <label class="pd-lb">ประเภทโครงการ</label>
+        <div class="ptwrap">${pt}</div>
+        <div class="form">
+          ${F("preparedBy","ผู้จัดทำ")}
+          ${F("checkedBy","ผู้ตรวจ")}
+          ${F("approvedBy","ผู้อนุมัติ")}
+          ${F("buildingType","ประเภทอาคาร")}
+          ${F("floors","จำนวนชั้นอาคาร")}
+          ${F("gfa","พื้นที่ GFA (ตร.ม.)")}
+        </div>
+      </div>
+      <div class="pd-side">
+        <div class="pd-img" id="pdImg" style="${im?`background-image:url('${esc(im)}')`:""}">${im?"":"รูปอาคาร"}</div>
+        <input data-cv="coverImg" class="mono" placeholder="ลิงก์รูปอาคาร (URL)" value="${esc(cv.coverImg||'')}">
+        <button class="btn ghost" id="pImgDel">ลบรูปอาคาร</button>
+        <div class="pd-stats">
+          <div class="ps"><label>รายการรวม</label><b>${p.items.length}</b></div>
+          <div class="ps"><label>มูลค่ารวม</label><b>${total?total.toLocaleString():"—"}</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  ${boqHtml(p)}
+  <div style="height:70px"></div>`;
   $("#pBackList").onclick=()=>{ viewPid=null; renderProjects(); };
   $("#pName").onchange=e=>{ p.name=e.target.value; saveProjects(); };
   $("#pStage").onchange=e=>{ p.stage=e.target.value; saveProjects(); };
-  $$("#ptRow .ptbtn").forEach(b=>b.onclick=()=>{ p.cover.ptype=b.dataset.pt; saveProjects(); renderProjDetail(p); });
-  $$("#projBody [data-cv]").forEach(i=>i.onchange=e=>{ p.cover[e.target.dataset.cv]=e.target.value; saveProjects(); if(e.target.dataset.cv==="floors"||e.target.dataset.cv==="coverImg")renderProjDetail(p); });
-  (function(){ const cd=$("#projCoverDrop"),cf=$("#projCoverFile"); if(!cd)return; const setImg=async(file)=>{ if(!file||!/^image\//.test(file.type)){toast("ไม่ใช่ไฟล์รูป");return;} try{ const data=await downscaleImage(file,1200,0.85); p.cover.coverImg=data; saveProjects(); renderProjDetail(p); toast("เพิ่มรูปโครงการแล้ว"); }catch(er){ toast(er.message); } }; cd.onclick=()=>cf&&cf.click(); if(cf)cf.onchange=e=>{ if(e.target.files&&e.target.files[0])setImg(e.target.files[0]); }; cd.ondragover=e=>{e.preventDefault();cd.style.borderColor="#E8820C";}; cd.ondragleave=()=>{cd.style.borderColor="#ECEAE3";}; cd.ondrop=e=>{e.preventDefault();cd.style.borderColor="#ECEAE3"; const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f)setImg(f); }; })();
-  $$("#projBody [data-cfa]").forEach(i=>i.onchange=e=>{ if(!p.cover.cfa)p.cover.cfa={}; p.cover.cfa[e.target.dataset.cfa]=e.target.value; saveProjects(); });
-  const _ra=$("#roomAdd"); if(_ra)_ra.onclick=()=>{ if(!p.rooms)p.rooms=[]; const fl=1; const seq=String(p.rooms.filter(x=>String(x.floor)===String(fl)).length+1).padStart(2,"0"); p.rooms.push({floor:fl,seq,name:"",area:"",img:""}); saveProjects(); renderProjDetail(p); };
-  $$("#projBody [data-room]").forEach(i=>i.onchange=e=>{ const idx=+e.target.dataset.room,k=e.target.dataset.rk; if(!p.rooms||!p.rooms[idx])return; p.rooms[idx][k]=e.target.value; saveProjects(); if(k==="floor"||k==="seq"||k==="img")renderProjDetail(p); });
-  $$("#projBody [data-roomrm]").forEach(b=>b.onclick=e=>{ p.rooms.splice(+e.target.closest("[data-roomrm]").dataset.roomrm,1); saveProjects(); renderProjDetail(p); });
-  _bindThumbZoom&&$$("#projBody [data-thumb]").forEach(el=>{ el.addEventListener("mouseenter",()=>{ const z=_ensureZP(); const src=el.dataset.thumb; z.style.backgroundImage="url('"+src+"')"; z.classList.add("on"); const im=new Image(); im.onload=()=>{ const MAX=340; let w=im.naturalWidth||MAX,ht=im.naturalHeight||MAX; const s=Math.min(MAX/w,MAX/ht,1.2); z.style.width=Math.round(w*s)+"px"; z.style.height=Math.round(ht*s)+"px"; }; im.src=src; }); el.addEventListener("mousemove",ev=>{ if(!_zp)return; const pad=18,w=_zp.offsetWidth||260,ht=_zp.offsetHeight||260; let x=ev.clientX+pad,y=ev.clientY+pad; if(x+w>innerWidth)x=ev.clientX-w-pad; if(y+ht>innerHeight)y=innerHeight-ht-8; if(y<8)y=8; _zp.style.left=x+"px"; _zp.style.top=y+"px"; }); el.addEventListener("mouseleave",()=>{ if(_zp)_zp.classList.remove("on"); }); });
+  $("#pActive").onclick=()=>{ activePid=p.id; toast("ตั้งเป็นโครงการที่กำลังเพิ่มแล้ว"); renderProjDetail(p); };
+  $("#pSheet2").onclick=projectCreateSheet;
+  $("#pCsv2").onclick=projectCSV;
+  $("#pBoard").onclick=()=>openBoard(p);
+  $("#pImgDel").onclick=()=>{ p.cover.coverImg=""; saveProjects(); renderProjDetail(p); };
+  $$("#ptRow .ptbtn, #projBody .ptbtn").forEach(b=>b.onclick=()=>{ p.cover.ptype=b.dataset.pt; saveProjects(); renderProjDetail(p); });
+  $$("#projBody [data-cv]").forEach(i=>i.onchange=e=>{ p.cover[e.target.dataset.cv]=e.target.value; saveProjects(); if(e.target.dataset.cv==="coverImg")renderProjDetail(p); });
   $$("#projBody [data-pi]").forEach(i=>i.onchange=e=>{ p.items[+e.target.dataset.pi][e.target.dataset.pk]=e.target.value; saveProjects(); renderProjDetail(p); });
   $$("#projBody [data-rm]").forEach(b=>b.onclick=e=>{ p.items.splice(+e.target.dataset.rm,1); saveProjects(); renderProjDetail(p); });
 }
