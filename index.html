@@ -643,11 +643,21 @@ async function loadData(force){
   if(LOADING)return; if(LOADED&&!force)return;
   LOADING=true;
   try{
-    if(CFG.url){ try{ const d=await jsonp(CFG.url,20000); if(d&&d.sheets){ parseWB(d); saveCache(d); LOADED=true; MODE="apps"; try{ projPull(); }catch(_){ } return; } }catch(e){} }
+    const cached=loadCache();
+    // Fast path: paint cache instantly, then upgrade to live-editable (apps) in background
+    if(cached&&CFG.url&&!force){ parseWB(cached); LOADED=true; MODE="copy"; LOADING=false; bgUpgrade(); return; }
+    if(CFG.url){ try{ const d=await jsonp(CFG.url,60000); if(d&&d.sheets){ parseWB(d); saveCache(d); LOADED=true; MODE="apps"; try{ projPull(); }catch(_){ } return; } }catch(e){} }
     try{ const sheets=await loadLive(); if(sheets.length>=8){ parseWB({sheets}); saveCache({sheets}); LOADED=true; MODE="live"; return; } }catch(e){}
-    const c=loadCache();
-    parseWB(c||BOOTSTRAP); LOADED=true; MODE="copy";
+    parseWB(cached||BOOTSTRAP); LOADED=true; MODE="copy";
   } finally{ LOADING=false; }
+}
+let _bgDone=false;
+async function bgUpgrade(){ if(_bgDone||!CFG.url)return; _bgDone=true;
+  try{ const d=await jsonp(CFG.url,60000); if(d&&d.sheets){ parseWB(d); saveCache(d); MODE="apps"; try{ projPull(); }catch(_){ }
+    try{ if(!$("#hub").classList.contains("hidden")){ renderHub(); const hs=$("#hubStatus"); if(hs)hs.innerHTML="เชื่อมต่อชีตแบบสด (แก้ไขได้) · คลิกเพื่อเข้าดูรายการ"; } }catch(_){ }
+    try{ if(!$("#app").classList.contains("hidden")){ renderDH(); renderTabs(); renderFilters(); renderList(); } }catch(_){ }
+    try{ updateSrcChip(); }catch(_){ }
+  } }catch(e){ _bgDone=false; }
 }
 async function apiWrite(params){
   if(MODE!=="apps")throw new Error("โหมดอ่านอย่างเดียว — ต่อ Apps Script (⚙) ก่อนจึงจะเพิ่ม/แก้/ลบได้");
