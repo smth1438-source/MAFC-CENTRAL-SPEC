@@ -1,0 +1,474 @@
+// ===== MA.FC Central Spec — Apps Script v15 (Multi-file / อ่าน+เขียน, JSONP/GET+POST) =====
+// ตั้งรหัสลับให้ตรงกับช่อง "รหัสลับ (Token)" ในหน้าเว็บ (เว้นว่าง = ไม่ตรวจ)
+var SECRET = 'mafc-spec-2026-Kx7q9Zr3T';
+// โฟลเดอร์ปลายทางใน Google Drive — ไฟล์โครงการที่สร้างจะถูกย้ายมาที่นี่อัตโนมัติ
+var DEST_FOLDER_ID = '1Gv2ScvJ1hNAjWbTPafp0OIFR4iySZ4C6';
+// โฟลเดอร์เก็บรูปสินค้า — อัปรูปเข้าที่นี่ ตั้งชื่อไฟล์ตามรหัสสินค้า
+var IMG_FOLDER_ID = '1_u56981ZvZgOj6QnLjNEeFYjWY3hfcdT';
+
+// ===== v15: หลายไฟล์ต่อหมวดใหญ่ (Multi-file federation) =====
+// ผูกสคริปต์นี้กับ "ไฟล์หลัก" (แนะนำ = ไฟล์ FF/ชีตเดิม) แล้วใส่ Sheet ID ของไฟล์หมวดอื่น
+// id = '' หมายถึงใช้ไฟล์หลัก (ไฟล์ที่ผูกสคริปต์). ไฟล์หลักเก็บแท็บระบบ (_PROJECTS ฯลฯ) เสมอ
+var SOURCES = [
+  { disc:'FF',   id:'1ZWVX2DTwDz5ndAU5upc4lnxKXIWn1gF96rY8AQOyBfQ' },  // ไฟล์ 04-FF เฉพาะ (MAFC-04-FF)
+  { disc:'GN',   id:'1BatxJg9f-eCx1_1cy22pTFrva5j48K0wH7LAfSJXXzU' },
+  { disc:'ST',   id:'1OFfZev2xfA7p5Vf1fT0Tf9EovAzAMD-9WspsKIq0j1o' },
+  { disc:'AR',   id:'11cguxLo00jQPmVi-0NEsPJsxN7qeqDUI8RY0W8u6EvE' },
+  { disc:'EE',   id:'1LzpvCmnAdSupKHUfV6LacEvr9q0Gk4-_4n7iUHIYr08' },
+  { disc:'SN',   id:'12LONC5KrWkTxk3k2d_9Mya-q3daUwNiz2hHKyIzabL4' },
+  { disc:'MVAC', id:'1XkPeXZqpYEcvG17gSgdC3GQ-sSznTzLaDBgDoORiLAY' },
+  { disc:'ID',   id:'1tZHJnutT06orVIi8u2bqXhFlDA0efShc_ssP9t-8n_o' },
+  { disc:'LA',   id:'1FWcyvo8TS3QjAEuQMyychqSj-hPAdaBDB2Kay-E7yVY' },
+  { disc:'EXT',  id:'1kxK3r5EuMlU1k7pK2cZX5jZKAoP19EEPAEoyHB3qiao' }
+];
+function mainSS_(){ return SpreadsheetApp.getActiveSpreadsheet(); }
+function ssById_(id){ id=(id==null?'':String(id).trim()); return id ? SpreadsheetApp.openById(id) : mainSS_(); }
+function ssForDisc_(disc){
+  disc=String(disc||'').toUpperCase();
+  for(var i=0;i<SOURCES.length;i++){ if(String(SOURCES[i].disc).toUpperCase()===disc){ try{ return ssById_(SOURCES[i].id); }catch(e){ return mainSS_(); } } }
+  return mainSS_();
+}
+
+// ---------- Router: ทั้ง GET (JSONP) และ POST เข้าที่เดียวกัน ----------
+function doGet(e){ return route(e); }
+function doPost(e){
+  var params = {};
+  try{ if(e && e.postData && e.postData.contents){ params = JSON.parse(e.postData.contents); } }catch(err){}
+  var merged = {}, k;
+  if(e && e.parameter){ for(k in e.parameter) merged[k]=e.parameter[k]; }
+  if(params && typeof params==='object'){ for(k in params) merged[k]=params[k]; }
+  return route({ parameter: merged });
+}
+
+function route(e){
+  e = e || {};
+  var p  = (e.parameter) || {};
+  var cb = p.callback || '';
+  var act = p.action || 'read';
+
+  // การเขียนต้องผ่าน token (ถ้าตั้ง SECRET ไว้)
+  var WRITE = { add:1, update:1, 'delete':1, createProject:1, projectSave:1, projectDelete:1, uploadImage:1, accSave:1, restore:1 };
+  if (WRITE[act] && SECRET && String(p.token||'') !== SECRET){
+    return reply(cb, { ok:false, error:'unauthorized' });
+  }
+
+  if (WRITE[act]){ try{ logAction_(p, act); }catch(e){} }
+  if (act === 'add')            return reply(cb, addRow(p));
+  if (act === 'update')         return reply(cb, updateRow(p));
+  if (act === 'delete')         return reply(cb, deleteRow(p));
+  if (act === 'createProject')  return reply(cb, createProject(p));
+  if (act === 'projectUrl')     return reply(cb, projectUrl(p));   // ดึงลิงก์ไฟล์โครงการกลับมา
+  if (act === 'projectsList')   return reply(cb, projectsList());   // โหลดโครงการทั้งหมด (sync)
+  if (act === 'projectSave')    return reply(cb, projectSave(p));   // บันทึก/อัปเดตโครงการ
+  if (act === 'projectDelete')  return reply(cb, projectDelete(p)); // ลบโครงการ
+  if (act === 'uploadImage')    return reply(cb, uploadImage(p));   // อัปรูปเข้า Drive (ตั้งชื่อตามรหัส)
+  if (act === 'imageUrl')       return reply(cb, imageUrl(p));      // ดึงลิงก์รูปตามรหัส
+  if (act === 'accGet')         return reply(cb, accGet());         // เทมเพลตอุปกรณ์เสริม (อ่าน)
+  if (act === 'accSave')        return reply(cb, accSave(p));       // เทมเพลตอุปกรณ์เสริม (บันทึก)
+  if (act === 'trashList')      return reply(cb, trashList());       // ถังขยะ (อ่าน)
+  if (act === 'priceLog')       return reply(cb, priceLog(p));        // ประวัติราคา (อ่าน)
+  if (act === 'restore')        return reply(cb, restore(p));        // กู้คืนจากถังขยะ
+  return reply(cb, readWorkbook());        // ค่าเริ่มต้น = อ่านทุกแท็บ
+}
+
+// ห่อผลลัพธ์: มี callback → JSONP, ไม่มี → JSON ปกติ
+function reply(cb, obj){
+  var json = JSON.stringify(obj);
+  return cb
+    ? ContentService.createTextOutput(cb + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT)
+    : ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ---------- READ ----------
+function readWorkbook(){
+  var out = { updated: new Date().toISOString(), title: mainSS_().getName(), sheets: [] };
+  var seen = {};
+  SOURCES.forEach(function(src){
+    var ss; try{ ss = ssById_(src.id); }catch(e){ return; }
+    if(!ss) return;
+    var sid; try{ sid = ss.getId(); }catch(e){ return; }
+    if(seen[sid]) return;                       // กันอ่านไฟล์เดียวซ้ำ (เช่น id ว่างหลายหมวด)
+    seen[sid] = String(src.disc||'').toUpperCase();
+    var disc = String(src.disc||'').toUpperCase();
+    ss.getSheets().forEach(function(sh){
+      if (sh.isSheetHidden()) return;           // ข้ามแท็บที่ซ่อน
+      if (String(sh.getName()).charAt(0)==='_') return;  // ข้ามแท็บระบบ
+      var rng = sh.getDataRange();
+      var vals = rng ? rng.getDisplayValues() : [];
+      out.sheets.push({ name: sh.getName(), gid: sh.getSheetId(), disc: disc, values: vals });
+    });
+  });
+  return out;
+}
+
+// ---------- helpers ----------
+function colMap(sh){
+  var lastCol = Math.max(sh.getLastColumn(), 9);
+  var headers = sh.getRange(1,1,1,lastCol).getValues()[0];
+  function col(re){ for(var i=0;i<headers.length;i++){ if(re.test(String(headers[i]))) return i; } return -1; }
+  return { lastCol: lastCol,
+    code: col(/รหัส|code/i), desc: col(/ราย|desc|ชื่อ/i),
+    size: col(/ขนาด|ชนิด|size/i), brand: col(/แบรนด|refer|brand/i),
+    link: col(/ลิงค|ลิงก|link/i), price: col(/ราคา|price/i),
+    contact: col(/เบอร|contact/i), grade: col(/เกรด|grade/i),
+    img: col(/รูป|image|img/i),
+    unit: col(/^\s*หน่วย\s*$|หน่วยนับ|^\s*unit\s*$/i),
+    labor: col(/ค่าแรง|labou?r|แรงงาน/i),
+    priceDate: col(/ราคา.*วันท|วันท.*ราคา|price.?date/i),
+    std: col(/มอก|astm|มาตรฐาน|standard/i),
+    status: col(/^\s*สถานะ\s*$|status/i),
+    equiv: col(/เทียบเท่า|equivalent|^equiv/i),
+    bim: col(/bim|โมเดล|model/i) };
+}
+function ensureSheet(ss, name){
+  var sh = ss.getSheetByName(name);
+  if (sh) return sh;
+  sh = ss.insertSheet(name);
+  var hdr = ['รหัส','รายละเอียด','ชนิด/ขนาด','เกรด','แบรนด์','ลิงค์','ราคาต่อหน่วย','เบอร์เซลล์','รูป','หน่วย','ค่าแรง/หน่วย','ราคา ณ วันที่','มาตรฐาน','สถานะ','เทียบเท่า','ลิงก์ BIM'];
+  sh.getRange(1,1,1,hdr.length).setValues([hdr])
+    .setFontWeight('bold').setFontColor('#ffffff').setBackground('#0047AB');
+  sh.setFrozenRows(1); sh.setColumnWidth(2,320);
+  return sh;
+}
+function fillRow(arr, idx, p){
+  function put(key,v){ if(idx[key]>=0 && v!=null && v!=='') arr[idx[key]] = v; }
+  put('code',p.code); put('desc',p.desc); put('size',p.size);
+  put('brand',p.brand); put('link',p.link);
+  put('price', Number(p.price)||p.price); put('contact',p.contact);
+  put('grade',p.grade); put('img',p.img); put('unit',p.unit); put('labor',p.labor); put('priceDate',p.priceDate); put('std',p.std); put('status',p.status); put('equiv',p.equiv); put('bim',p.bim);
+  return arr;
+}
+function findRow(sh, code){
+  var idx = colMap(sh); if (idx.code < 0) return -1;
+  var n = sh.getLastRow(); if (n < 2) return -1;
+  var vals = sh.getRange(2, idx.code+1, n-1, 1).getValues();
+  for (var i=0;i<vals.length;i++){ if(String(vals[i][0]).trim() === String(code).trim()) return i+2; }
+  return -1;
+}
+function isGroupCode(c){ c=String(c||'').trim(); return c!=='' && !/-/.test(c); }
+function groupInsertRow(sh, idx, maincode, section){
+  if(idx.code < 0) return -1;
+  var n = sh.getLastRow(); if(n < 2) return -1;
+  var data = sh.getRange(2, 1, n-1, idx.lastCol).getValues();
+  var hdr = -1;
+  for(var i=0;i<data.length;i++){
+    var code = String(data[i][idx.code]||'').trim();
+    var desc = idx.desc>=0 ? String(data[i][idx.desc]||'').trim() : '';
+    if(isGroupCode(code) && ((maincode && code===String(maincode).trim()) || (section && desc===String(section).trim()))){ hdr=i; break; }
+  }
+  if(hdr < 0) return -1;
+  var insert = hdr + 1;
+  for(var j=hdr+1;j<data.length;j++){
+    if(isGroupCode(String(data[j][idx.code]||'').trim())) break;
+    insert = j + 1;
+  }
+  return insert + 2;
+}
+
+// ---------- WRITE ----------
+function ensureCols_(sh){
+  var lastCol=sh.getLastColumn(); var headers=lastCol?sh.getRange(1,1,1,lastCol).getValues()[0]:[];
+  var want=['หน่วย','ค่าแรง/หน่วย','ราคา ณ วันที่','มาตรฐาน','สถานะ','เทียบเท่า','ลิงก์ BIM'];
+  want.forEach(function(name){
+    var found=false;
+    for(var i=0;i<headers.length;i++){ var h=String(headers[i]); if(new RegExp('^\\s*'+name+'\\s*$').test(h)){ found=true; break; } }
+    if(!found){ sh.getRange(1,(sh.getLastColumn()||0)+1).setValue(name).setFontWeight('bold'); }
+  });
+}
+function addRow(p){
+  var ss = ssForDisc_(p.disc);
+  var sh = ensureSheet(ss, p.cat); ensureCols_(sh);
+  var idx = colMap(sh);
+  var row = []; for(var k=0;k<idx.lastCol;k++) row.push('');
+  fillRow(row, idx, p);
+  var at = groupInsertRow(sh, idx, p.maincode, p.section);
+  if(at > 0 && at <= sh.getLastRow()){
+    sh.insertRowBefore(at);
+    sh.getRange(at, 1, 1, row.length).setValues([row]);
+    return { ok:true, added:true, row:at };
+  }
+  if((p.maincode || p.section) && at < 0){
+    var hdr = []; for(var j=0;j<idx.lastCol;j++) hdr.push('');
+    if(idx.code>=0) hdr[idx.code] = p.maincode || '';
+    if(idx.desc>=0) hdr[idx.desc] = p.section || '';
+    sh.appendRow(hdr);
+  }
+  sh.appendRow(row);
+  return { ok:true, added:true };
+}
+function updateRow(p){
+  var ss = ssForDisc_(p.disc);
+  var sh = ss.getSheetByName(p.cat); if(!sh) return addRow(p); ensureCols_(sh);
+  var rowNo = findRow(sh, p.origcode || p.code);
+  if (rowNo < 0) return addRow(p);
+  var idx = colMap(sh);
+  var rng = sh.getRange(rowNo, 1, 1, idx.lastCol);
+  var cur = rng.getValues()[0];
+  var oldPrice = idx.price>=0 ? String(cur[idx.price]||'') : '';
+  var newPrice = String(p.price==null?'':p.price);
+  if(newPrice!=='' && newPrice!==oldPrice){ try{ priceLog_(p.cat, p.code||p.origcode, oldPrice, newPrice, p.user); }catch(e){} }
+  rng.setValues([fillRow(cur, idx, p)]);
+  return { ok:true, updated:true, row:rowNo };
+}
+function trashSheet_(){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_TRASH');
+  if(!sh){ sh=ss.insertSheet('_TRASH'); sh.appendRow(['id','deletedAt','cat','code','json','user','disc']); try{ sh.hideSheet(); }catch(e){} }
+  return sh;
+}
+function deleteRow(p){
+  var ss = ssForDisc_(p.disc);
+  var sh = ss.getSheetByName(p.cat); if(!sh) return { ok:true, deleted:false };
+  var rowNo = findRow(sh, p.code);
+  if (rowNo < 0) return { ok:true, deleted:false };
+  try{
+    var lastCol=sh.getLastColumn();
+    var rowVals=sh.getRange(rowNo,1,1,lastCol).getValues()[0];
+    var headers=sh.getRange(1,1,1,lastCol).getValues()[0];
+    var obj={}; for(var i=0;i<headers.length;i++){ obj[String(headers[i])]=rowVals[i]; }
+    trashSheet_().appendRow([ 'T'+Date.now(), new Date(), String(p.cat), String(p.code), JSON.stringify(obj), String(p.user||''), String(p.disc||'') ]);
+  }catch(e){}
+  sh.deleteRow(rowNo);
+  return { ok:true, deleted:true };
+}
+function trashList(){
+  var sh=trashSheet_(); var n=sh.getLastRow(); var out=[];
+  if(n>=2){ var lc=Math.max(sh.getLastColumn(),6); var v=sh.getRange(2,1,n-1,lc).getValues();
+    for(var i=0;i<v.length;i++){ if(!v[i][0]) continue;
+      out.push({ id:String(v[i][0]), deletedAt:String(v[i][1]), cat:String(v[i][2]), code:String(v[i][3]), user:String(v[i][5]), disc:String(v[i][6]||'') }); } }
+  return { ok:true, trash: out };
+}
+function restore(p){
+  var id=String(p.id||''); if(!id) return { ok:false, error:'no id' };
+  var sh=trashSheet_(); var n=sh.getLastRow(); var row=-1, rec=null;
+  if(n>=2){ var lc=Math.max(sh.getLastColumn(),6); var v=sh.getRange(2,1,n-1,lc).getValues();
+    for(var i=0;i<v.length;i++){ if(String(v[i][0])===id){ row=i+2; rec=v[i]; break; } } }
+  if(row<0||!rec) return { ok:false, error:'not found' };
+  var cat=String(rec[2]); var obj={}; try{ obj=JSON.parse(rec[4]||'{}'); }catch(e){}
+  var rdisc=(rec.length>6?String(rec[6]||''):''); 
+  var ss=ssForDisc_(rdisc); var tsh=ensureSheet(ss,cat); ensureCols_(tsh);
+  var lastCol=tsh.getLastColumn(); var headers=tsh.getRange(1,1,1,lastCol).getValues()[0];
+  var arr=[]; for(var c=0;c<lastCol;c++){ var h=String(headers[c]); arr.push(obj[h]!==undefined?obj[h]:''); }
+  tsh.appendRow(arr);
+  sh.deleteRow(row);
+  return { ok:true, restored:true };
+}
+
+// ---------- สร้างไฟล์สเปกรายโครงการ (หน้าปก + แท็บแยกหมวด) ----------
+function createProject(p){
+  var data = JSON.parse(p.payload || '{}');
+  var cats = JSON.parse(p.cats || '[]');
+  var name = p.name || ('SPEC-' + Date.now());
+  var ss = SpreadsheetApp.create(name);
+  var cov = data.cover || {};
+  var cv = ss.getSheets()[0]; cv.setName('ปก');
+  cv.getRange(2,2).setValue('รายการประกอบแบบก่อสร้าง').setFontWeight('bold').setFontSize(14);
+  var meta = [
+    ['โครงการ', cov.project || ''],
+    ['สถานที่ก่อสร้าง', cov.site || ''],
+    ['แบบเลขที่', cov.drawingNo || ''],
+    ['วันที่', cov.dateISO || ''],
+    ['เจ้าของอาคาร', cov.owner || ''],
+    ['ผู้ออกแบบ', cov.designer || ''],
+    ['รหัสไฟล์', name],
+    ['ขั้นตอน', data.stage || ''],
+    ['ผู้จัดทำ', cov.preparedBy || ''],
+    ['ผู้ตรวจ', cov.checkedBy || ''],
+    ['ผู้อนุมัติ', cov.approvedBy || '']
+  ];
+  cv.getRange(4,2,meta.length,2).setValues(meta);
+  cv.getRange(4,2,meta.length,1).setFontWeight('bold');
+  cv.setColumnWidth(2,180); cv.setColumnWidth(3,360);
+  var cols = ['รหัส','รายละเอียด','ตำแหน่ง','จำนวน','หน่วย','ชั้นที่ 1 / ตร.ม.','ชั้นที่ 2 / ตร.ม.','หลังคา / ตร.ม.','ขนาดพื้นที่ รวม','ราคาต่อ หน่วย','ราคารวม','ลิงค์วัสดุ','หมายเหตุ'];
+  function n2(v){ var x = parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isNaN(x)?0:x; }
+  (cats.length ? cats : [{n:1,code:'',name:'รายการ'}]).forEach(function(cat){
+    var items = (data.items||[]).filter(function(it){ return it.catCode===cat.code && it.catName===cat.name; });
+    var sname = (('0'+cat.n).slice(-2)) + '-' + cat.code + '-' + cat.name;
+    sname = sname.replace(/[\\\/\?\*\[\]:]/g,' ').substring(0,31);
+    var sh = ss.insertSheet(sname);
+    sh.getRange(1,1).setValue(cat.code);
+    sh.getRange(1,2).setValue('รายการวัสดุ' + cat.name);
+    sh.getRange(1,1,1,2).setFontWeight('bold').setFontColor('#ffffff').setBackground('#111111');
+    sh.getRange(2,1,1,cols.length).setValues([cols]).setFontWeight('bold').setBackground('#274e13').setFontColor('#ffffff');
+    var out = [];
+    items.forEach(function(it){
+      var area = n2(it.a1)+n2(it.a2)+n2(it.roof);
+      var basis = area>0 ? area : n2(it.qty);
+      var line = basis * n2(it.price);
+      out.push([it.code,it.desc,it.location,n2(it.qty)||'',it.unit,n2(it.a1)||'',n2(it.a2)||'',n2(it.roof)||'',area||'',n2(it.price)||'',line||'',it.link,it.note]);
+    });
+    if (out.length) sh.getRange(3,1,out.length,cols.length).setValues(out);
+    sh.setColumnWidth(2,320);
+  });
+  // ย้ายไฟล์ที่สร้างไปโฟลเดอร์ปลายทางอัตโนมัติ
+  try {
+    var nf = DriveApp.getFileById(ss.getId());
+    var dest = DEST_FOLDER_ID ? DriveApp.getFolderById(DEST_FOLDER_ID) : null;
+    if (dest) { dest.addFile(nf); DriveApp.getRootFolder().removeFile(nf); }
+  } catch(err) {}
+  return { ok:true, url: ss.getUrl(), id: ss.getId() };
+}
+
+// ---------- ดึงลิงก์ไฟล์โครงการจากโฟลเดอร์ปลายทาง (ตามชื่อไฟล์ ล่าสุด) ----------
+function projectUrl(p){
+  var name = p.name || '';
+  if(!name) return { ok:false, error:'no name' };
+  try{
+    var folder = DEST_FOLDER_ID ? DriveApp.getFolderById(DEST_FOLDER_ID) : null;
+    if(!folder) return { ok:false, error:'no dest folder' };
+    var it = folder.getFilesByName(name), best=null;
+    while(it.hasNext()){ var f=it.next(); if(!best || f.getDateCreated()>best.getDateCreated()) best=f; }
+    if(best) return { ok:true, url: best.getUrl(), id: best.getId() };
+  }catch(err){ return { ok:false, error:String(err) }; }
+  return { ok:false, error:'not found' };
+}
+
+// ---------- Sync โครงการข้ามเครื่อง (เก็บ JSON ในแท็บ _PROJECTS) ----------
+function projSheet_(){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_PROJECTS');
+  if(!sh){ sh=ss.insertSheet('_PROJECTS'); sh.appendRow(['id','name','updatedAt','json']); try{ sh.hideSheet(); }catch(e){} }
+  return sh;
+}
+function projectsList(){
+  var sh=projSheet_(); var n=sh.getLastRow(); var out=[];
+  if(n>=2){
+    var v=sh.getRange(2,1,n-1,4).getValues();
+    for(var i=0;i<v.length;i++){
+      if(!v[i][0]) continue;
+      var obj; try{ obj=JSON.parse(v[i][3]||'{}'); }catch(e){ obj={}; }
+      if(!obj || typeof obj!=='object') obj={};
+      obj.id = obj.id || String(v[i][0]);            // แนบ id จากแถวเสมอ (รองรับ tombstone)
+      if(!obj.updatedAt) obj.updatedAt = Number(v[i][2])||0;
+      out.push(obj);
+    }
+  }
+  return { ok:true, projects: out };
+}
+function projectSave(p){
+  var id=String(p.id||''); if(!id) return { ok:false, error:'no id' };
+  var sh=projSheet_(); var n=sh.getLastRow(); var row=-1;
+  if(n>=2){ var ids=sh.getRange(2,1,n-1,1).getValues();
+    for(var i=0;i<ids.length;i++){ if(String(ids[i][0])===id){ row=i+2; break; } } }
+  var rec=[id, String(p.name||''), String(p.updatedAt||Date.now()), String(p.json||'{}')];
+  if(row>0) sh.getRange(row,1,1,4).setValues([rec]);
+  else sh.appendRow(rec);
+  return { ok:true };
+}
+function projectDelete(p){
+  var id=String(p.id||''); if(!id) return { ok:false, error:'no id' };
+  var sh=projSheet_(); var n=sh.getLastRow(); var row=-1;
+  if(n>=2){ var ids=sh.getRange(2,1,n-1,1).getValues();
+    for(var i=0;i<ids.length;i++){ if(String(ids[i][0])===id){ row=i+2; break; } } }
+  // เขียน tombstone แทนการลบแถว เพื่อกันโครงการ "เด้งกลับ" ตอน sync ข้ามเครื่อง
+  var rec=[id, '(deleted)', String(Date.now()), '{"__deleted":true}'];
+  if(row>0) sh.getRange(row,1,1,4).setValues([rec]);
+  else sh.appendRow(rec);
+  return { ok:true, deleted:true };
+}
+
+// ---------- รูปสินค้า: อัปเข้า Drive + ดึงลิงก์ (ตั้งชื่อไฟล์ตามรหัส) ----------
+function imgFolder_(){ return IMG_FOLDER_ID ? DriveApp.getFolderById(IMG_FOLDER_ID) : null; }
+function sanitizeName_(s){ return String(s||'').replace(/[\\\/\?\*\[\]:#%]/g,'_').trim(); }
+function driveThumb_(id){ return 'https://drive.google.com/thumbnail?id='+id+'&sz=w1000'; }
+function trashSameCode_(folder, code){
+  try{ var it=folder.getFiles();
+    while(it.hasNext()){ var f=it.next(); if(f.getName().replace(/\.[^.]+$/,'')===code) f.setTrashed(true); } }catch(e){}
+}
+function uploadImage(p){
+  var folder=imgFolder_(); if(p.folder){ try{ folder=DriveApp.getFolderById(p.folder); }catch(e){} } if(!folder) return { ok:false, error:'no img folder' };
+  var code=sanitizeName_(p.code || ('IMG-'+Date.now()));
+  var blob=null;
+  if(p.data){
+    var m=String(p.data).match(/^data:([^;]+);base64,(.*)$/);
+    if(!m) return { ok:false, error:'bad data url' };
+    var bytes=Utilities.base64Decode(m[2]);
+    var ext=(String(m[1]).split('/')[1]||'png').split('+')[0];
+    blob=Utilities.newBlob(bytes, m[1], code+'.'+ext);
+  } else if(p.url){
+    try{
+      var resp=UrlFetchApp.fetch(p.url, { muteHttpExceptions:true, followRedirects:true });
+      if(resp.getResponseCode()>=400) return { ok:false, error:'fetch '+resp.getResponseCode() };
+      blob=resp.getBlob();
+      var ct=blob.getContentType()||'image/png';
+      if(ct.indexOf('image/')!==0) return { ok:false, error:'not an image' };
+      var ex=(ct.split('/')[1]||'png').split('+')[0];
+      blob.setName(code+'.'+ex);
+    }catch(err){ return { ok:false, error:'fetch failed' }; }
+  } else return { ok:false, error:'no image' };
+  trashSameCode_(folder, code);
+  var file=folder.createFile(blob);
+  try{ file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }catch(e){}
+  var id=file.getId();
+  return { ok:true, id:id, url:driveThumb_(id) };
+}
+function imageUrl(p){
+  var folder=imgFolder_(); if(p.folder){ try{ folder=DriveApp.getFolderById(p.folder); }catch(e){} } if(!folder) return { ok:false, error:'no img folder' };
+  var code=sanitizeName_(p.code||''); if(!code) return { ok:false, error:'no code' };
+  var it=folder.getFiles(), best=null;
+  while(it.hasNext()){ var f=it.next(); if(f.getName().replace(/\.[^.]+$/,'')===code){ if(!best||f.getDateCreated()>best.getDateCreated()) best=f; } }
+  if(best){ var id=best.getId(); try{ best.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }catch(e){} return { ok:true, id:id, url:driveThumb_(id) }; }
+  return { ok:false, error:'not found' };
+}
+
+// ---------- เทมเพลตอุปกรณ์เสริมต่อหมวด (เก็บ JSON ก้อนเดียวในแท็บ _ACCESSORIES) ----------
+function accSheet_(){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_ACCESSORIES');
+  if(!sh){ sh=ss.insertSheet('_ACCESSORIES'); sh.getRange(1,1).setValue('{}'); try{ sh.hideSheet(); }catch(e){} }
+  return sh;
+}
+function accGet(){
+  var sh=accSheet_(); var v=sh.getRange(1,1).getValue(); var obj={};
+  try{ obj=JSON.parse(v||'{}'); }catch(e){ obj={}; }
+  return { ok:true, acc:obj };
+}
+function accSave(p){
+  var sh=accSheet_(); sh.getRange(1,1).setValue(String(p.data||'{}'));
+  return { ok:true };
+}
+
+// ---------- Audit log (_LOG) ----------
+function logAction_(p, act){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_LOG');
+  if(!sh){ sh=ss.insertSheet('_LOG'); sh.appendRow(['เวลา','ผู้ใช้','การกระทำ','หมวด/ไฟล์','รหัส']); try{ sh.hideSheet(); }catch(e){} }
+  sh.appendRow([ new Date(), String(p.user||'-'), String(act||''), String(p.cat||p.name||p.id||''), String(p.code||p.origcode||'') ]);
+}
+
+// ---------- ประวัติราคา (_PRICE_LOG) ----------
+function priceLogSheet_(){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName('_PRICE_LOG');
+  if(!sh){ sh=ss.insertSheet('_PRICE_LOG'); sh.appendRow(['เวลา','หมวด','รหัส','ราคาเดิม','ราคาใหม่','ผู้ใช้']); try{ sh.hideSheet(); }catch(e){} }
+  return sh;
+}
+function priceLog_(cat, code, oldP, newP, user){
+  priceLogSheet_().appendRow([ new Date(), String(cat||''), String(code||''), String(oldP||''), String(newP||''), String(user||'') ]);
+}
+function priceLog(p){
+  var sh=priceLogSheet_(); var n=sh.getLastRow(); var out=[]; var code=String(p.code||'');
+  if(n>=2){ var v=sh.getRange(2,1,n-1,6).getValues();
+    for(var i=0;i<v.length;i++){ if(code && String(v[i][2])!==code) continue;
+      out.push({ time:String(v[i][0]), cat:String(v[i][1]), code:String(v[i][2]), oldP:String(v[i][3]), newP:String(v[i][4]), user:String(v[i][5]) }); } }
+  return { ok:true, log: out };
+}
+
+// ---------- ล็อกสิทธิ์ชีต: ทีม 9 อีเมล = ผู้แก้ไข, คนอื่น = ดูอย่างเดียว ----------
+var TEAM_EDITORS = ['mafc.drawingconstruction@gmail.com','muslim.architect.for.community@gmail.com','sm.th1438@gmail.com','mafc.for.atelier@gmail.com','afnan.mafc@gmail.com','mafc.alameen@gmail.com','anan_0913@hotmail.com','mafc.wandee@gmail.com','mafc.musaffard@gmail.com'];
+function lockSheets(){
+  var ids=[];
+  SOURCES.forEach(function(s){ if(s.id) ids.push(s.id); });
+  try{ ids.push(mainSS_().getId()); }catch(e){}
+  var out=[];
+  ids.forEach(function(id){
+    try{
+      var f=DriveApp.getFileById(id);
+      f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      TEAM_EDITORS.forEach(function(em){ try{ f.addEditor(em); }catch(e){} });
+      out.push('OK '+id);
+    }catch(e){ out.push('ERR '+id+' '+e); }
+  });
+  Logger.log(out.join('\n'));
+  return out.join(' | ');
+}
