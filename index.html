@@ -711,6 +711,29 @@ html.mafc-light .mafc-themebtn{background:#fff;color:#33404f;border-color:#e3e0d
 /* print */
 @media print{ :root{--paper:#fff;--ink:#16181D;} body{background:#fff!important;} th{background:#0d0d0d!important;color:#fff!important;} #mafcCtx,#mafcLB,#mafcDrawer,#mafcScrim,.mafc-burger,#mafcPray,.mafc-themebtn{display:none!important;} }
 
+/* ===== v4.4 — modal close button, grade dropdown, image status ===== */
+.modal h3{position:relative;padding-right:44px!important;}
+.mclose-x{position:absolute;top:50%;right:0;transform:translateY(-50%);width:30px;height:30px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--hair);background:transparent;color:var(--gray);
+  border-radius:var(--rs);cursor:pointer;font-size:14px;line-height:1;padding:0;}
+.mclose-x:hover{border-color:var(--blue);color:#fff;background:rgba(0,71,171,.18);}
+html.mafc-light .mclose-x{border-color:#e3e0d8;color:#6b7280;}
+html.mafc-light .mclose-x:hover{color:#0047AB;background:rgba(0,71,171,.08);}
+
+.form select[data-k]{width:100%;padding:9px 10px;border:1px solid var(--hair);border-radius:var(--rs);
+  background:#0f1520;color:var(--ink);font:inherit;font-family:var(--mono);}
+.form select[data-k]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,71,171,.25);}
+html.mafc-light .form select[data-k]{background:#fff;color:#16181D;border-color:#e3e0d8;}
+
+.imgstat{margin-top:8px;padding:8px 10px;border-radius:var(--rs);font-size:12.5px;line-height:1.45;
+  border:1px solid var(--hair);background:rgba(255,255,255,.04);color:var(--body);}
+.imgstat.load{border-color:#3b82f6;color:#9cc4ff;}
+.imgstat.ok{border-color:#16A34A;color:#7ee2a8;}
+.imgstat.warn{border-color:#E8820C;color:#f6c07a;}
+.imgstat.err{border-color:#DC2626;color:#ff9d9d;}
+html.mafc-light .imgstat{background:#faf9f6;color:#4b5563;}
+
 </style>
 </head>
 <body>
@@ -1872,6 +1895,139 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     targets.forEach(function(w){ if(w&&!w.querySelector('.mafc-themebtn')){ var b=makeBtn(); var burger=w.querySelector('.mafc-burger'); if(burger)w.insertBefore(b,burger); else w.appendChild(b); } });
   }
   if(document.readyState!=='loading')boot(); else document.addEventListener('DOMContentLoaded',boot);
+})();
+
+/* ===== v4.4 — modal close (Esc/✕/dirty-guard) + grade dropdown + image upload fix ===== */
+(function(){
+  var GRADES=["","A","B+","B","C+","C","D"];
+  var snap=null;
+
+  function ov(){ return document.querySelector('#modalHost .ov'); }
+  function fields(){ var o=ov(); return o?Array.prototype.slice.call(o.querySelectorAll('[data-k],[data-a]')):[]; }
+  function takeSnap(){ snap=fields().map(function(el){ return el.value; }); }
+  function dirty(){
+    if(!snap)return false;
+    var f=fields(); if(f.length!==snap.length)return false;
+    return f.some(function(el,i){ return el.value!==snap[i]; });
+  }
+  function tryClose(){
+    if(dirty()&&!confirm("ยังไม่ได้บันทึก — ปิดหน้าต่างนี้เลยไหม?"))return;
+    snap=null;
+    if(typeof closeModal==="function")closeModal();
+    else{ var h=document.getElementById("modalHost"); if(h)h.innerHTML=""; }
+  }
+
+  /* --- grade input -> dropdown --- */
+  function gradeSelect(root){
+    var inp=root.querySelector('input[data-k="grade"]'); if(!inp)return;
+    var cur=String(inp.value||"").trim();
+    var sel=document.createElement("select");
+    sel.setAttribute("data-k","grade");
+    sel.className=inp.className||"";
+    sel.setAttribute("aria-label","เกรด");
+    var known=false;
+    GRADES.forEach(function(g){
+      var o=document.createElement("option");
+      o.value=g; o.textContent=g||"— ไม่ระบุ —";
+      if(g===cur){ o.selected=true; known=true; }
+      sel.appendChild(o);
+    });
+    if(cur&&!known){ var o2=document.createElement("option"); o2.value=cur; o2.textContent=cur; o2.selected=true; sel.appendChild(o2); }
+    inp.parentNode.replaceChild(sel,inp);
+  }
+
+  /* --- close button in modal header --- */
+  function addCloseBtn(o){
+    var m=o.querySelector(".modal"); if(!m)return;
+    var h3=m.querySelector("h3"); if(!h3||h3.querySelector(".mclose-x"))return;
+    var b=document.createElement("button");
+    b.type="button"; b.className="mclose-x"; b.innerHTML="&#10005;";
+    b.setAttribute("aria-label","ปิดหน้าต่าง"); b.title="ปิด (Esc)";
+    b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); tryClose(); };
+    h3.appendChild(b);
+  }
+
+  function enhanceModal(){
+    var o=ov(); if(!o)return;
+    if(o.dataset.v44)return; o.dataset.v44="1";
+    addCloseBtn(o);
+    gradeSelect(o);
+    takeSnap();
+    o.onclick=function(e){ if(e.target===o)tryClose(); };
+  }
+
+  var host=document.getElementById("modalHost");
+  if(host)new MutationObserver(function(){ if(ov())enhanceModal(); else snap=null; })
+    .observe(host,{childList:true,subtree:true});
+
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Escape")return;
+    var lb=document.getElementById("mafcLB"); if(lb&&lb.open)return;
+    if(ov()){ e.preventDefault(); tryClose(); }
+  });
+
+  /* --- image upload: wait for apps mode, persistent status, data-url fallback --- */
+  function stat(msg,cls){
+    var box=document.getElementById("imgDrop"); if(!box)return;
+    var s=document.getElementById("imgStat");
+    if(!s){ s=document.createElement("div"); s.id="imgStat"; box.parentNode.insertBefore(s,box.nextSibling); }
+    s.className="imgstat "+(cls||""); s.textContent=msg;
+  }
+  function appsReady(){ try{ return typeof MODE!=="undefined"&&MODE==="apps"; }catch(e){ return false; } }
+  function waitApps(ms){
+    return new Promise(function(res){
+      var t0=Date.now();
+      (function chk(){
+        if(appsReady())return res(true);
+        if(Date.now()-t0>ms)return res(false);
+        setTimeout(chk,300);
+      })();
+    });
+  }
+
+  if(typeof window.handleImg==="function"){
+    window.handleImg=async function(file){
+      if(!file||!/^image\//.test(file.type)){ stat("ไม่ใช่ไฟล์รูป","err"); return; }
+      var data;
+      try{ data=await downscaleImage(file,820,0.82); }
+      catch(e){ stat(e.message,"err"); return; }
+
+      var prev=document.getElementById("imgPrev");
+      if(prev){ prev.src=data; prev.style.display=""; }
+      var im=document.querySelector('#modalHost [data-k="img"]');
+
+      var ready=appsReady();
+      if(!ready){ stat("กำลังเชื่อมต่อเซิร์ฟเวอร์… รอสักครู่","load"); ready=await waitApps(20000); }
+
+      if(ready){
+        var codeEl=document.querySelector('#modalHost [data-k="code"]');
+        var code=(codeEl&&codeEl.value.trim())||("IMG-"+Date.now());
+        stat("กำลังอัปโหลดรูป…","load");
+        try{
+          var r=await apiPost({action:"uploadImage",code:code,data:data});
+          if(r&&r.url){
+            if(im)im.value=r.url;
+            if(prev)prev.src=imgSrc({img:r.url});
+            stat("✓ อัปรูปสำเร็จ — กดบันทึกได้เลย","ok");
+            return;
+          }
+          stat("อัปแล้วแต่ไม่ได้ลิงก์ — ใช้รูปย่อฝังแทน","warn");
+        }catch(e){ stat("อัปเข้า Drive ไม่สำเร็จ ("+e.message+") — ใช้รูปย่อฝังแทน","warn"); }
+      }
+
+      /* fallback: embed a small data URL so the image is not lost */
+      try{
+        var small=await downscaleImage(file,400,0.6);
+        if(small.length<45000){
+          if(im)im.value=small;
+          if(prev)prev.src=small;
+          stat("⚠ ฝังรูปย่อไว้ในชีตแทน (กดบันทึกได้เลย)","warn");
+        }else{
+          stat("✕ อัปไม่สำเร็จ และรูปใหญ่เกินฝังในชีต — วางลิงก์รูปในช่องด้านล่างแทน","err");
+        }
+      }catch(e){ stat("✕ อัปรูปไม่สำเร็จ","err"); }
+    };
+  }
 })();
 
 </script>
