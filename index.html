@@ -2047,19 +2047,50 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
 
   if(!SB_URL || !SB_KEY) return;   // ยังไม่ config → ใช้ Apps Script เดิมต่อไป
 
-  /* ---------- session (Google login ผ่าน Supabase Auth, implicit flow) ---------- */
+  /* ---------- session (email + password ผ่าน Supabase Auth) ---------- */
   var SESS=null;
   try{ SESS=JSON.parse(localStorage.getItem("mafc_sb_sess")||"null"); }catch(e){}
-  (function grabHash(){                       // รับ token กลับจากหน้า login
-    if(location.hash.indexOf("access_token=")<0) return;
-    var h={}; location.hash.slice(1).split("&").forEach(function(kv){ var p=kv.split("="); h[p[0]]=decodeURIComponent(p[1]||""); });
-    if(h.access_token){ SESS={access_token:h.access_token, refresh_token:h.refresh_token||"", expires_at:Date.now()+(+h.expires_in||3600)*1000};
-      try{ localStorage.setItem("mafc_sb_sess",JSON.stringify(SESS)); }catch(e){}
-      history.replaceState(null,"",location.pathname+location.search); }
-  })();
   function authed(){ return SESS && SESS.access_token && Date.now()<(SESS.expires_at||0)-60000; }
   function hdrs(json){ var h={ "apikey":SB_KEY, "Authorization":"Bearer "+(authed()?SESS.access_token:SB_KEY) }; if(json)h["Content-Type"]="application/json"; return h; }
-  function login(){ location.href = SB_URL+"/auth/v1/authorize?provider=google&redirect_to="+encodeURIComponent(location.origin+location.pathname); }
+  function setSess(j){ SESS={access_token:j.access_token,refresh_token:j.refresh_token||"",expires_at:Date.now()+(+j.expires_in||3600)*1000,email:(j.user&&j.user.email)||""}; try{localStorage.setItem("mafc_sb_sess",JSON.stringify(SESS));}catch(e){} }
+  async function authReq(kind,email,pass){
+    var url = kind==="signup" ? SB_URL+"/auth/v1/signup" : SB_URL+"/auth/v1/token?grant_type=password";
+    var r=await fetch(url,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:pass})});
+    var j=await r.json();
+    if(j&&j.access_token){ setSess(j); return {ok:true}; }
+    return {ok:false, msg:(j&&(j.msg||j.error_description||j.error||j.code))||("HTTP "+r.status)};
+  }
+  function login(){ openLogin(); }
+  function openLogin(){
+    if(document.getElementById("mafcLogin"))return;
+    var ov=document.createElement("div"); ov.id="mafcLogin";
+    ov.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px";
+    ov.innerHTML='<div style="background:#0f172a;color:#e5e7eb;max-width:360px;width:100%;border-radius:14px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:inherit">'
+      +'<div style="font-weight:700;font-size:16px;margin-bottom:4px">ล็อกอินทีม MA.FC</div>'
+      +'<div style="font-size:12px;color:#94a3b8;margin-bottom:12px">ใช้อีเมลทีม (ครั้งแรกกด “สมัคร” เพื่อตั้งรหัสผ่าน)</div>'
+      +'<input id="mafcLE" type="email" placeholder="อีเมล" autocomplete="username" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#fff">'
+      +'<input id="mafcLP" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)" autocomplete="current-password" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#fff">'
+      +'<div id="mafcLMsg" style="font-size:12px;color:#f87171;min-height:16px;margin-bottom:8px"></div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button id="mafcLIn" style="flex:1;padding:10px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer">เข้าสู่ระบบ</button>'
+      +'<button id="mafcLUp" style="flex:1;padding:10px;border:1px solid #334155;border-radius:8px;background:#1e293b;color:#e5e7eb;cursor:pointer">สมัคร (ครั้งแรก)</button>'
+      +'</div>'
+      +'<button id="mafcLX" style="margin-top:10px;width:100%;padding:8px;border:0;border-radius:8px;background:transparent;color:#94a3b8;cursor:pointer">ยกเลิก</button>'
+      +'</div>';
+    document.body.appendChild(ov);
+    var msg=ov.querySelector("#mafcLMsg");
+    function go(kind){ var e=ov.querySelector("#mafcLE").value.trim(), p=ov.querySelector("#mafcLP").value;
+      if(!e||!p){ msg.style.color="#f87171"; msg.textContent="กรอกอีเมลและรหัสผ่าน"; return; }
+      msg.style.color="#94a3b8"; msg.textContent=kind==="signup"?"กำลังสมัคร…":"กำลังเข้าสู่ระบบ…";
+      authReq(kind,e,p).then(function(res){ if(res.ok){ location.reload(); }
+        else { msg.style.color="#f87171"; msg.textContent=/Invalid login/i.test(res.msg)?"อีเมลหรือรหัสผ่านไม่ถูก (ครั้งแรกกด “สมัคร”)":(/already registered|exists/i.test(res.msg)?"อีเมลนี้สมัครแล้ว — กด “เข้าสู่ระบบ”":res.msg); } });
+    }
+    ov.querySelector("#mafcLIn").onclick=function(){go("login");};
+    ov.querySelector("#mafcLUp").onclick=function(){go("signup");};
+    ov.querySelector("#mafcLX").onclick=function(){ov.remove();};
+    ov.querySelector("#mafcLP").addEventListener("keydown",function(ev){ if(ev.key==="Enter")go("login"); });
+    setTimeout(function(){ov.querySelector("#mafcLE").focus();},50);
+  }
   async function refreshSess(){
     if(!SESS||!SESS.refresh_token) return false;
     try{ var r=await fetch(SB_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:hdrs(true),body:JSON.stringify({refresh_token:SESS.refresh_token})});
@@ -2073,7 +2104,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     opt=opt||{}; if(!authed()&&SESS) await refreshSess();
     var r=await fetch(SB_URL+"/rest/v1/"+path,{ method:opt.method||"GET", headers:Object.assign(hdrs(opt.body!=null),opt.headers||{}), body:opt.body!=null?JSON.stringify(opt.body):undefined });
     if(r.status===401||r.status===403){
-      if(!authed()){ if(confirm("ต้องล็อกอิน Google (บัญชีทีม) เพื่อแก้ไข — ไปหน้าล็อกอินเลยไหม?")) login(); throw new Error("ยังไม่ได้ล็อกอิน"); }
+      if(!authed()){ openLogin(); throw new Error("กรุณาล็อกอินทีมก่อนแก้ไข"); }
       throw new Error("บัญชีนี้ไม่มีสิทธิ์แก้ไข (ไม่อยู่ในทีม)");
     }
     if(!r.ok){ var t=""; try{ t=(await r.json()).message||""; }catch(e){} throw new Error(t||("HTTP "+r.status)); }
