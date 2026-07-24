@@ -2176,7 +2176,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     var act=p.action;
     if(act==="add"||act==="update"){
       var cid=await catId(p.disc, p.cat);
-      var body=itemBody(p);
+      var body=itemBody(p); body.category_id=cid;
       if(act==="update"){
         var code=encodeURIComponent(p.origcode||p.code);
         var upd=await sb("items?category_id=eq."+cid+"&code=eq."+code+"&deleted_at=is.null",
