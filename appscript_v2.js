@@ -17,7 +17,7 @@ var STALE_DAYS = 90;                        // ธงราคาเก่า
 
 var HDR = ['id','full_id','old_code','disc','grp','grp_name','name','size','grade','brand','link','price','unit','contact','img','price_date','std','status','source','sort','updated_at','updated_by','deleted'];
 
-var SHEET_ID = '19MqOIAMIibaUzf9mgeUUgfAeBgOjqM-c0Pbxy4QEFPo';   // ชีตทดลอง MAFC-PLAYGROUND-V5
+var SHEET_ID = '1x_QTGfK4xeL-V0yYt_2rhM-a1tVM6HOG5bh-gp5d8r8';   // ชีตทดลอง MAFC-PLAYGROUND-V5
 function ss(){ return SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet(); }
 function sh(name){ var s=ss().getSheetByName(name); if(!s){ s=ss().insertSheet(name); } return s; }
 
