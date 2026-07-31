@@ -238,9 +238,11 @@ function tree(){
 }
 function render(){
   var q=$('#q').value.trim().toLowerCase();
-  var a=ITEMS.filter(function(i){if(fG&&i.grp!==fG)return false;
-    if(q)return (i.id+' '+(i.old||'')+' '+i.name+' '+(i.brand||'')).toLowerCase().indexOf(q)>=0;return true});
-  $('#crumb').innerHTML=fG?('กลุ่ม <b>'+esc(fG)+'</b> · '+a.length+' รายการ'):('ทั้งหมด <b>'+a.length+'</b> รายการ');
+  /* ค้นหา = ค้นทั้งระบบเสมอ (ไม่ติดกลุ่มที่เลือกค้างไว้) */
+  var a=ITEMS.filter(function(i){if(!q&&fG&&i.grp!==fG)return false;
+    if(q)return (i.id+' '+(i.old||'')+' '+i.name+' '+(i.brand||'')+' '+(i.gn||'')).toLowerCase().indexOf(q)>=0;return true});
+  $('#crumb').innerHTML=q?('ผลค้นหา “'+esc($('#q').value.trim())+'” · <b>'+a.length+'</b> รายการ (ทั้งระบบ)')
+    :(fG?('กลุ่ม <b>'+esc(fG)+'</b> · '+a.length+' รายการ'):('ทั้งหมด <b>'+a.length+'</b> รายการ'));
   $('#nid').innerHTML=fG&&a.length?('รหัสถัดไป <b>'+nextId(a[0].disc,fG)+'</b>'):'';
   $('#tb').innerHTML=a.slice(0,400).map(function(i){
     return '<tr data-id="'+i.id+'"'+(SEL===i.id?' class="sel"':'')+'>'+

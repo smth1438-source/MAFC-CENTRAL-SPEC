@@ -262,7 +262,7 @@ function chips(){
 function flags(i){var f='';if(isStale(i.pd))f+='<span class="flag f-st">⚠ ราคาเก่า</span> ';if(i.src==='BOQ')f+='<span class="flag f-bq">BOQ สตูล</span>';return f}
 function render(){
   var q=$('#q').value.trim().toLowerCase();
-  var a=ITEMS.filter(function(i){if(fD&&i.disc!==fD)return false;
+  var a=ITEMS.filter(function(i){if(!q&&fD&&i.disc!==fD)return false;
     if(q){return (i.id+' '+(i.old||'')+' '+i.name+' '+(i.brand||'')+' '+(i.gn||'')).toLowerCase().indexOf(q)>=0}return true});
   var st=ITEMS.filter(function(i){return isStale(i.pd)}).length;
   $('#stat').innerHTML='<span class="pill">แสดง <b>'+a.length+'</b> / '+ITEMS.length+'</span>'+
