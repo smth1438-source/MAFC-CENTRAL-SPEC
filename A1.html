@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MA.FC SPEC V5 — แบบ 1 STUDIO</title>
+<style>
+:root{--bg:#0A0F1A;--bg2:#0F1829;--card:#152238;--line:#22334E;--txt:#EAF0FA;--mut:#8CA2C2;
+--blue:#3B82F6;--sky:#7DD3FC;--ok:#34D399;--warn:#FBBF24;--red:#F87171;--r:16px}
+*{margin:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Tahoma,sans-serif;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.hide{display:none!important}
+img{max-width:100%;display:block}
+header{position:sticky;top:0;z-index:30;background:rgba(10,15,26,.97);border-bottom:1px solid var(--line);
+ display:flex;align-items:center;gap:12px;padding:10px 16px}
+.lg{font-weight:800;letter-spacing:.09em;font-size:13px;line-height:1.15}
+.lg small{display:block;color:var(--mut);font-weight:400;letter-spacing:.16em;font-size:8.5px}
+.tag{background:#1E3A5F;color:var(--sky);font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:99px;letter-spacing:.06em}
+.sp{flex:1}
+.gbtn{display:flex;align-items:center;gap:7px;background:#fff;color:#1f2937;border:0;border-radius:8px;padding:7px 12px;font-weight:600;font-size:12.5px}
+.gbtn svg{width:15px;height:15px}
+nav.tb{display:flex;gap:2px;padding:0 12px;background:var(--bg2);border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:53px;z-index:29}
+nav.tb button{background:none;border:0;color:var(--mut);padding:11px 14px;font-size:13px;font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+nav.tb button.on{color:var(--txt);border-bottom-color:var(--blue)}
+main{max-width:1180px;margin:0 auto;padding:16px 16px 90px}
+.hero{text-align:center;padding:26px 0 6px}
+.hero h1{font-size:clamp(20px,5vw,28px);font-weight:800;text-wrap:balance}
+.hero p{color:var(--mut);margin-top:6px;font-size:13.5px;text-wrap:pretty}
+.bs{max-width:620px;margin:16px auto 0;display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.bs input{flex:1;min-width:0;background:none;border:0;color:var(--txt);padding:13px 15px;font-size:14.5px}
+.bs input::placeholder{color:var(--mut)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:14px 0 4px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mut);border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip b{font-weight:400;opacity:.65}
+.stat{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;font-size:11.5px;color:var(--mut);margin:10px 0 4px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 10px}
+.pill b{color:var(--txt)}
+.sec{margin-top:22px}
+.sech{display:flex;align-items:baseline;gap:9px;border-bottom:1px solid var(--line);padding-bottom:7px;flex-wrap:wrap}
+.sech .gc{font-family:ui-monospace,Consolas,monospace;color:var(--sky);font-weight:700;font-size:13.5px}
+.sech h2{font-size:14.5px}.sech .c{color:var(--mut);font-size:11.5px}
+.sech .add{margin-left:auto;background:none;border:1px dashed var(--line);color:var(--mut);border-radius:8px;padding:4px 11px;font-size:11.5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:12px;margin-top:12px}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.mc:hover{border-color:var(--blue)}
+.mc .ph{aspect-ratio:4/3;background:var(--bg2);display:grid;place-items:center;color:#41536E;font-size:11px;overflow:hidden}
+.mc .ph img{width:100%;height:100%;object-fit:cover}
+.mc .bd{padding:11px;display:flex;flex-direction:column;gap:6px;flex:1}
+.mt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mid{font-family:ui-monospace,Consolas,monospace;font-weight:700;color:var(--sky);font-size:12.5px}
+.old{font-size:9.5px;color:var(--mut);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.gr{font-size:10.5px;font-weight:700;background:#1E3A5F;color:var(--sky);border-radius:5px;padding:1px 6px;margin-left:auto}
+.nm{font-size:12.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.mf{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--mut);flex-wrap:wrap}
+.pr{font-weight:700;color:var(--txt)}
+.flag{font-size:9.5px;padding:1px 6px;border-radius:4px}
+.f-st{background:#3F2D0A;color:var(--warn)}.f-bq{background:#0B2E4A;color:var(--sky)}
+.act{margin-left:auto;display:flex;gap:4px}
+.act button{background:none;border:1px solid var(--line);color:var(--mut);border-radius:6px;padding:2px 8px;font-size:11px}
+/* projects */
+.pj{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.pst{font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 8px}
+.s-a{background:#064E3B;color:#6EE7B7}.s-d{background:#374151;color:#D1D5DB}
+.pj h3{font-size:14.5px;margin:7px 0 3px}.pj .meta{font-size:12px;color:var(--mut)}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,215px),1fr));gap:10px;margin-top:11px}
+.room{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px}
+.rn{font-weight:700;font-size:13px;display:flex;gap:7px;align-items:center}
+.rno{font-family:ui-monospace,Consolas,monospace;color:var(--sky);font-size:11.5px;background:#0E2A4F;border-radius:5px;padding:1px 6px}
+.room ul{list-style:none;margin-top:8px;font-size:11.5px;color:var(--mut)}
+.room li{padding:2px 0;display:flex;gap:6px}
+.room li b{color:var(--sky);font-family:ui-monospace,Consolas,monospace;font-weight:700;font-size:10.5px}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9px 15px;font-weight:600;font-size:13px}
+.btn.g{background:none;border:1px solid var(--line);color:var(--txt)}
+.btn.ok{background:#0E3A2F;border:1px solid #14532D;color:#6EE7B7}
+.btn.sm{padding:6px 11px;font-size:12px}
+.pbtns{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+table.fs{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:11px;display:block;overflow-x:auto}
+table.fs th,table.fs td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+table.fs th{background:var(--bg2);color:var(--mut);font-size:10.5px}
+table.fs td.e{color:#3A4A63}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;place-items:center;padding:12px;z-index:70;overflow:auto}
+.ov.show{display:grid}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:18px;max-width:450px;width:100%;padding:19px;max-height:92dvh;overflow:auto}
+.modal h3{font-size:15.5px;margin-bottom:12px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.fl{margin-bottom:10px}.fl label{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
+.fl input,.fl select,.fl textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:9px 11px;font-size:13.5px}
+.aid{display:flex;align-items:center;gap:11px;background:#0E2A4F;border:1px solid #1D4ED8;border-radius:11px;padding:11px 13px;margin-bottom:11px}
+.aid .v{font-family:ui-monospace,Consolas,monospace;font-size:19px;font-weight:800;color:var(--sky)}
+.mrow{display:flex;gap:9px;margin-top:5px}.mrow .btn{flex:1;padding:11px 0}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1B2A44;border:1px solid var(--line);border-radius:11px;padding:11px 18px;font-size:13px;z-index:99;display:none;max-width:92vw;text-align:center}
+.toast.show{display:block}.toast.ok{border-color:#14532D;color:#6EE7B7}.toast.err{border-color:var(--red);color:#FCA5A5}
+/* present */
+#pv{position:fixed;inset:0;background:#fff;color:#0f172a;z-index:200;overflow:auto;display:none}
+#pv.show{display:block}
+.pcov{background:linear-gradient(140deg,#0A0F1A 0%,#1D4ED8 100%);color:#fff;padding:clamp(30px,8vw,58px) 22px}
+.pcov h1{font-size:clamp(21px,5.5vw,30px);text-wrap:balance}
+.pcov p{opacity:.86;margin-top:7px;font-size:13.5px}
+.pw{max-width:940px;margin:0 auto;padding:20px 16px 60px}
+.prm{border:1px solid #e5e7eb;border-radius:16px;padding:15px;margin-bottom:15px}
+.prm h2{font-size:16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.prm .no{font-family:ui-monospace,Consolas,monospace;background:#EFF6FF;color:#1D4ED8;border-radius:6px;padding:2px 8px;font-size:12.5px}
+.pms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr));gap:11px;margin-top:11px}
+.pm{border:1px solid #e5e7eb;border-radius:11px;overflow:hidden}
+.pm .pi{aspect-ratio:4/3;background:#f1f5f9;display:grid;place-items:center;color:#94a3b8;font-size:10.5px;overflow:hidden}
+.pm .pi img{width:100%;height:100%;object-fit:cover}
+.pm .pb{padding:9px}.pm .pk{font-size:10.5px;color:#64748b}
+.pm .pn{font-size:12px;line-height:1.4;margin-top:2px}
+.pcl{position:fixed;top:12px;right:14px;background:#0f172a;color:#fff;border:0;border-radius:9px;padding:8px 14px;z-index:210;font-size:13px}
+@media(max-width:520px){main{padding:12px 12px 90px}.hero{padding:18px 0 4px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lg">MA.FC GROUP<small>CENTRAL SPEC · V5</small></div>
+  <span class="tag">แบบ 1 · STUDIO</span>
+  <div class="sp"></div>
+  <button class="gbtn" id="gs">
+    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C41.4 34.9 44 30 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+    <span id="gsl">เข้าสู่ระบบ</span>
+  </button>
+</header>
+
+<nav class="tb">
+  <button class="on" data-v="lib">คลังวัสดุ</button>
+  <button data-v="prj">โครงการ</button>
+  <button data-v="qa">ตรวจสอบ</button>
+</nav>
+
+<main>
+  <section id="v-lib">
+    <div class="hero">
+      <h1>คลังสเปกวัสดุกลาง</h1>
+      <p>ค้นหา · เปรียบเทียบ · จัดเข้าโครงการ — รหัสออกอัตโนมัติ ส่งฝ่ายประมาณราคาได้ทันที</p>
+      <div class="bs"><input id="q" placeholder="ค้นหา F03-01 / F3-1 (รหัสเดิม) / กระเบื้อง / RCI / ท่อ PVC …" aria-label="ค้นหาวัสดุ"></div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="stat" id="stat"></div>
+    <div id="list"></div>
+  </section>
+
+  <section id="v-prj" class="hide">
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 14px"><b style="font-size:15px">โครงการ</b><div class="sp"></div><button class="btn sm" id="np">＋ โครงการใหม่</button></div>
+    <div id="prjs"></div>
+  </section>
+
+  <section id="v-qa" class="hide">
+    <div style="margin:8px 0 14px"><b style="font-size:15px">ตรวจสอบคุณภาพข้อมูล</b>
+      <p style="color:var(--mut);font-size:12.5px;margin-top:4px">ระบบตรวจให้อัตโนมัติ — คลิกหัวข้อเพื่อดูรายการ</p></div>
+    <div id="qa"></div>
+  </section>
+</main>
+
+<div class="ov" id="ovM"><div class="modal">
+  <h3 id="mT">เพิ่มรายการ</h3>
+  <div class="aid" id="aidB"><div><div style="font-size:10px;color:var(--mut)">รหัสอัตโนมัติ</div><div class="v" id="aidV">—</div></div>
+    <small style="color:var(--mut);line-height:1.45">ระบบออกให้เอง ไม่มีทางซ้ำ<br>รหัสเต็ม BOQ: <b id="aidF">—</b></small></div>
+  <div class="f2"><div class="fl"><label>หมวด *</label><select id="iD"></select></div>
+  <div class="fl"><label>กลุ่ม *</label><select id="iG"></select></div></div>
+  <div class="fl"><label>รายละเอียด *</label><textarea id="iN" rows="2" placeholder="เช่น กระเบื้อง RCI …"></textarea></div>
+  <div class="f2">
+    <div class="fl"><label>ราคา/หน่วย</label><input id="iP" inputmode="decimal"></div>
+    <div class="fl"><label>หน่วย</label><input id="iU" placeholder="ตร.ม. / ชุด / เส้น"></div>
+    <div class="fl"><label>แบรนด์</label><input id="iB"></div>
+    <div class="fl"><label>เกรด</label><select id="iGr"><option value="">—</option><option>A</option><option>B+</option><option>B</option><option>C+</option><option>C</option></select></div>
+  </div>
+  <div class="fl"><label>ลิงก์รูป</label><input id="iI" placeholder="https://…"></div>
+  <div class="mrow"><button class="btn g" onclick="cl('ovM')">ยกเลิก</button><button class="btn" id="mS">บันทึก</button></div>
+</div></div>
+
+<div class="ov" id="ovR"><div class="modal">
+  <h3 id="rT">เลือกวัสดุเข้าห้อง</h3>
+  <div class="fl"><label>ค้นหาวัสดุ</label><input id="rq" placeholder="พิมพ์รหัส/ชื่อ…"></div>
+  <div id="rr" style="max-height:250px;overflow:auto;border:1px solid var(--line);border-radius:9px"></div>
+  <div class="f2" style="margin-top:9px">
+    <div class="fl"><label>ตำแหน่ง</label><input id="rn" placeholder="พื้นห้อง / ผนังทิศเหนือ"></div>
+    <div class="fl"><label>จำนวน</label><input id="rqt" inputmode="decimal"></div></div>
+  <div class="mrow"><button class="btn g" onclick="cl('ovR')">ปิด</button></div>
+</div></div>
+
+<div id="pv"><button class="pcl" onclick="cp()">✕ ปิด</button><div id="pvb"></div></div>
+<div class="toast" id="tst"></div>
+
+<script src="v5_boq.js"></script>
+<script>
+var API='https://script.google.com/macros/s/AKfycbzTigBhUbgeQ4wN1tHhJIVWexVUd8hdFuaqooxcLw_YQN7_vvfZtYZc1ndMvOgbcJ5K/exec';
+var DISC={FF:'งานตกแต่งผิว',GN:'งานเตรียมการ',ST:'โครงสร้าง',AR:'สถาปัตยกรรม',EE:'ไฟฟ้า',SN:'สุขาภิบาล',MVAC:'เครื่องกล',ID:'ตกแต่งภายใน',LA:'ภูมิสถาปัตย์',EXT:'ภายนอก'};
+var ITEMS=[],PRJ=[],SIGNED=false,fD='',EDIT=null,CP=null,CR=null;
+var $=function(s){return document.querySelector(s)},$$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})};
+function tst(m,c){var t=$('#tst');t.textContent=m;t.className='toast show '+(c||'');clearTimeout(t._);t._=setTimeout(function(){t.className='toast'},3600)}
+function op(i){$('#'+i).classList.add('show')} function cl(i){$('#'+i).classList.remove('show')}
+$$('.ov').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show')})});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')$$('.ov').forEach(function(o){o.classList.remove('show')})});
+function LS(k,d){try{return JSON.parse(localStorage.getItem('v5s_'+k))||d}catch(e){return d}}
+function SS(k,v){try{localStorage.setItem('v5s_'+k,JSON.stringify(v))}catch(e){}}
+function pad2(n){return (n<10?'0':'')+n}
+function thToday(){var d=new Date();return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543)}
+function isStale(pd){if(!pd)return true;var m=String(pd).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);if(!m)return true;
+  var y=+m[3];if(y>2400)y-=543;if(y<100)y+=2000;return (Date.now()-new Date(y,+m[2]-1,+m[1]).getTime())>90*864e5}
+
+/* ── โหลดข้อมูลจริงจากชีต (อ่านอย่างเดียว) + BOQ ── */
+function jsonp(url,ms){return new Promise(function(res,rej){
+  var cb='__c'+Math.random().toString(36).slice(2),sc=document.createElement('script');
+  var t=setTimeout(function(){k();rej(new Error('หมดเวลา'))},ms||30000);
+  function k(){try{delete window[cb]}catch(e){}sc.remove();clearTimeout(t)}
+  window[cb]=function(d){k();res(d)};sc.onerror=function(){k();rej(new Error('เชื่อมต่อไม่ได้'))};
+  sc.src=url+(url.indexOf('?')>=0?'&':'?')+'callback='+cb;document.body.appendChild(sc)})}
+async function load(){
+  tst('กำลังโหลดข้อมูลจริงจากชีต…');
+  var out=[],seq={};
+  try{
+    var wb=await jsonp(API,30000);
+    (wb.sheets||[]).forEach(function(s){
+      var nm=String(s.name||'');if(nm.charAt(0)==='_')return;
+      var d=String(s.disc||'').toUpperCase(),v=s.values||[],g='',gn='';
+      for(var r=1;r<v.length;r++){
+        var code=String(v[r][0]||'').trim(),desc=String(v[r][1]||'').trim();
+        if(!code&&!desc)continue;
+        if(code&&code.indexOf('-')<0){g=code;gn=desc;continue}
+        if(!code)continue;
+        var m=(g||code.split('-')[0]).match(/^([A-Za-z+]+)\s*(\d*)/);
+        var L=m?m[1].replace(/[^A-Za-z]/g,'').toUpperCase().substring(0,3):'X';
+        var grp=L+pad2(m&&m[2]?+m[2]:1),k=d+grp;seq[k]=(seq[k]||0)+1;
+        var id=grp+'-'+pad2(seq[k]);
+        out.push({id:id,fid:d+'-'+id,old:code,disc:d,grp:grp,gn:gn||g,name:desc,size:String(v[r][2]||''),
+          grade:String(v[r][3]||''),brand:String(v[r][4]||''),link:String(v[r][5]||''),price:String(v[r][6]||''),
+          img:String(v[r][8]||''),unit:String(v[r][9]||''),pd:String(v[r][11]||'')});
+      }});
+  }catch(e){ tst('โหลดชีตไม่ได้ — แสดงเฉพาะข้อมูล BOQ','err'); }
+  // BOQ (ฝังในไฟล์ · ไม่มี FF)
+  var have={};out.forEach(function(x){have[x.disc+'|'+x.name.toLowerCase()]=1});
+  var gm={},gs={},sq={};
+  out.forEach(function(x){var m=x.grp.match(/^([A-Z]+)(\d+)$/);if(m){var k=x.disc+'|'+m[1];gs[k]=Math.max(gs[k]||0,+m[2])}});
+  (window.MAFC_BOQ||[]).forEach(function(it){
+    if(it.disc==='FF')return; if(have[it.disc+'|'+it.name.toLowerCase()])return;
+    var gk=it.disc+'|'+it.group;
+    if(!gm[gk]){var p=it.disc==='EE'?'EB':it.disc.substring(0,2),sk=it.disc+'|'+p;gs[sk]=(gs[sk]||0)+1;gm[gk]=p+pad2(gs[sk])}
+    var grp=gm[gk];sq[grp]=(sq[grp]||0)+1;var id=grp+'-'+pad2(sq[grp]);
+    out.push({id:id,fid:it.disc+'-'+id,old:'',disc:it.disc,grp:grp,gn:it.group,name:it.name,size:'',grade:'',
+      brand:'',link:'',price:String(it.price||''),img:'',unit:it.unit||'',pd:'28/7/2569',qty:it.qty||'',src:'BOQ'});
+  });
+  ITEMS=out.concat(LS('add',[]));
+  PRJ=LS('prj',[]);
+  if(!PRJ.length){PRJ=[{id:'P1',name:'บ้านคุณสิรภัทร (ตัวอย่างจาก BOQ)',status:'ใช้งาน',
+    cover:{no:'CM06/69-05-RSL',owner:'คุณสิรภัทร ภัทราภินันท์',site:'ต.ควนสะตอ อ.ควนโดน จ.สตูล'},
+    rooms:[{no:'101',name:'นั่งเล่น',mats:[]},{no:'102',name:'ครัว',mats:[]},{no:'103',name:'ห้องน้ำชั้นล่าง',mats:[]},
+      {no:'201',name:'นอนใหญ่',mats:[]},{no:'EXT',name:'ภายนอก',mats:[]}],share:false}];SS('prj',PRJ)}
+  chips();render();rp();rqa();
+  tst('พร้อมใช้งาน · '+ITEMS.length+' รายการ','ok');
+}
+function chips(){
+  var c={};ITEMS.forEach(function(i){c[i.disc]=(c[i.disc]||0)+1});
+  $('#chips').innerHTML='<button class="chip'+(fD?'':' on')+'" data-d="">ทั้งหมด <b>· '+ITEMS.length+'</b></button>'+
+    Object.keys(c).sort().map(function(d){return '<button class="chip'+(fD===d?' on':'')+'" data-d="'+d+'">'+d+' '+(DISC[d]||'')+' <b>· '+c[d]+'</b></button>'}).join('');
+  $$('#chips .chip').forEach(function(b){b.onclick=function(){fD=b.dataset.d;chips();render()}});
+}
+function flags(i){var f='';if(isStale(i.pd))f+='<span class="flag f-st">⚠ ราคาเก่า</span> ';if(i.src==='BOQ')f+='<span class="flag f-bq">BOQ สตูล</span>';return f}
+function render(){
+  var q=$('#q').value.trim().toLowerCase();
+  var a=ITEMS.filter(function(i){if(fD&&i.disc!==fD)return false;
+    if(q){return (i.id+' '+(i.old||'')+' '+i.name+' '+(i.brand||'')+' '+(i.gn||'')).toLowerCase().indexOf(q)>=0}return true});
+  var st=ITEMS.filter(function(i){return isStale(i.pd)}).length;
+  $('#stat').innerHTML='<span class="pill">แสดง <b>'+a.length+'</b> / '+ITEMS.length+'</span>'+
+    '<span class="pill">⚠ ราคาเก่า <b>'+st+'</b></span><span class="pill">BOQ ใหม่ <b>'+ITEMS.filter(function(i){return i.src==='BOQ'}).length+'</b></span>';
+  var by={};a.forEach(function(i){var k=i.disc+'|'+i.grp+'|'+(i.gn||'');(by[k]=by[k]||[]).push(i)});
+  var ks=Object.keys(by).sort();
+  $('#list').innerHTML=ks.length?ks.map(function(k){var p=k.split('|'),it=by[k];
+    return '<section class="sec"><div class="sech"><span class="gc">'+esc(p[1])+'</span><h2>'+esc(p[2]||DISC[p[0]]||'')+'</h2>'+
+      '<span class="c">'+p[0]+' · '+it.length+' รายการ · ถัดไป '+p[1]+'-'+pad2(it.length+1)+'</span>'+
+      '<button class="add" data-d="'+p[0]+'" data-g="'+p[1]+'">＋ เพิ่ม (auto-ID)</button></div><div class="grid">'+
+      it.map(function(i){return '<div class="mc"><div class="ph">'+(i.img?'<img loading="lazy" alt="" src="'+esc(i.img)+'" onerror="this.parentNode.textContent=\'ไม่มีรูป\'">':'ไม่มีรูป')+'</div>'+
+        '<div class="bd"><div class="mt"><span class="mid">'+esc(i.id)+'</span>'+(i.old?'<span class="old">เดิม '+esc(i.old)+'</span>':'')+(i.grade?'<span class="gr">'+esc(i.grade)+'</span>':'')+'</div>'+
+        '<div class="nm">'+esc(i.name)+'</div>'+
+        '<div class="mf">'+(i.price?'<span class="pr num">'+Number(i.price).toLocaleString()+' ฿</span>':'<span>—</span>')+
+        (i.unit?'<span>/'+esc(i.unit)+'</span>':'')+(i.brand?'<span>· '+esc(i.brand)+'</span>':'')+
+        '<span class="act"><button data-add="'+i.id+'">→ ห้อง</button></span></div>'+
+        (flags(i)?'<div class="mf">'+flags(i)+'</div>':'')+'</div></div>'}).join('')+'</div></section>'}).join('')
+    :'<p style="color:var(--mut);text-align:center;padding:34px 0">ไม่พบรายการ</p>';
+  $$('#list .add').forEach(function(b){b.onclick=function(){openAdd(b.dataset.d,b.dataset.g)}});
+  $$('#list [data-add]').forEach(function(b){b.onclick=function(){quickRoom(b.dataset.add)}});
+}
+$('#q').addEventListener('input',render);
+/* auto-ID */
+function nextId(d,g){var mx=0;ITEMS.forEach(function(i){if(i.disc===d&&i.grp===g){var m=String(i.id).match(/-(\d+)$/);if(m)mx=Math.max(mx,+m[1])}});return g+'-'+pad2(mx+1)}
+function openAdd(d,g){EDIT=null;$('#mT').textContent='เพิ่มรายการ';$('#aidB').classList.remove('hide');
+  ['iN','iP','iU','iB','iI'].forEach(function(x){$('#'+x).value=''});$('#iGr').value='';
+  var ds=Object.keys(DISC);$('#iD').innerHTML=ds.map(function(x){return '<option value="'+x+'">'+x+' '+DISC[x]+'</option>'}).join('');
+  $('#iD').value=d||'FF';syncG();if(g)$('#iG').value=g;upId();op('ovM')}
+function syncG(){var d=$('#iD').value,gs={};ITEMS.forEach(function(i){if(i.disc===d)gs[i.grp]=i.gn||''});
+  $('#iG').innerHTML=Object.keys(gs).sort().map(function(g){return '<option value="'+g+'">'+g+' '+esc(gs[g]).slice(0,24)+'</option>'}).join('')+'<option value="__n">＋ กลุ่มใหม่…</option>';upId()}
+function upId(){var d=$('#iD').value,g=$('#iG').value;if(g==='__n'){$('#aidV').textContent='(ใหม่)';$('#aidF').textContent='—';return}
+  var id=nextId(d,g);$('#aidV').textContent=id;$('#aidF').textContent=d+'-'+id}
+$('#iD').addEventListener('change',syncG);
+$('#iG').addEventListener('change',function(){if(this.value==='__n'){var g=prompt('รหัสกลุ่มใหม่ (เช่น F15):');if(g){var o=document.createElement('option');o.value=g.toUpperCase().trim();o.textContent=o.value;this.insertBefore(o,this.firstChild);this.value=o.value}else this.selectedIndex=0}upId()});
+$('#mS').onclick=function(){
+  var n=$('#iN').value.trim();if(!n){tst('กรอกรายละเอียด','err');return}
+  var d=$('#iD').value,g=$('#iG').value;if(g==='__n'){tst('เลือกกลุ่ม','err');return}
+  var id=nextId(d,g);
+  var it={id:id,fid:d+'-'+id,old:'',disc:d,grp:g,gn:($('#iG').selectedOptions[0]||{}).textContent.replace(/^\S+\s*/,''),
+    name:n,size:'',grade:$('#iGr').value,brand:$('#iB').value.trim(),link:'',price:$('#iP').value.trim(),
+    img:$('#iI').value.trim(),unit:$('#iU').value.trim(),pd:thToday(),src:'NEW'};
+  ITEMS.push(it);var a=LS('add',[]);a.push(it);SS('add',a);
+  cl('ovM');chips();render();tst('เพิ่มแล้ว → รหัส '+id,'ok')};
+/* projects */
+function rp(){
+  $('#prjs').innerHTML=PRJ.map(function(p){
+    var n=(p.rooms||[]).reduce(function(a,r){return a+(r.mats||[]).length},0);
+    return '<div class="pj"><span class="pst '+(p.status==='ใช้งาน'?'s-a':'s-d')+'">'+esc(p.status)+'</span>'+
+      '<h3>'+esc(p.name)+'</h3><div class="meta">'+esc((p.cover&&p.cover.no)||'')+' · '+(p.rooms||[]).length+' ห้อง · '+n+' รายการวัสดุ'+
+      ((p.cover&&p.cover.site)?' · '+esc(p.cover.site):'')+'</div>'+
+      '<div class="rooms">'+(p.rooms||[]).map(function(r,ri){
+        return '<div class="room"><div class="rn"><span class="rno">'+esc(r.no)+'</span>'+esc(r.name)+'</div><ul>'+
+        ((r.mats||[]).length?r.mats.map(function(m){var i=byId(m.id)||{};
+          return '<li><b>'+esc(m.id)+'</b><span>'+esc((i.name||'').slice(0,24))+(m.qty?' ('+esc(m.qty)+')':'')+'</span></li>'}).join('')
+          :'<li style="color:#3A4A63">ยังไม่เลือกวัสดุ</li>')+'</ul>'+
+        '<button class="btn g sm" style="margin-top:8px;width:100%" data-pk="'+p.id+'" data-ri="'+ri+'">＋ วัสดุ</button></div>'}).join('')+'</div>'+
+      '<div class="pbtns"><button class="btn g sm" data-fs="'+p.id+'">📋 ตารางรวมทั้งบ้าน</button>'+
+      '<button class="btn ok sm" data-bq="'+p.id+'">⬇ ส่งฝ่ายประมาณราคา</button>'+
+      '<button class="btn g sm" data-pr="'+p.id+'">🔗 หน้านำเสนอลูกค้า</button></div><div id="fs-'+p.id+'"></div></div>'}).join('');
+  $$('#prjs [data-pk]').forEach(function(b){b.onclick=function(){pick(b.dataset.pk,+b.dataset.ri)}});
+  $$('#prjs [data-fs]').forEach(function(b){b.onclick=function(){fs(b.dataset.fs)}});
+  $$('#prjs [data-bq]').forEach(function(b){b.onclick=function(){boq(b.dataset.bq)}});
+  $$('#prjs [data-pr]').forEach(function(b){b.onclick=function(){present(b.dataset.pr)}});
+}
+function byId(id){return ITEMS.filter(function(x){return x.id===id})[0]}
+$('#np').onclick=function(){var n=prompt('ชื่อโครงการ:');if(!n)return;
+  var rs=prompt('ห้อง (เลข:ชื่อ, คั่นด้วย ,):','101:นั่งเล่น, 102:ครัว, 103:ห้องน้ำ, 201:นอนใหญ่');
+  var rooms=(rs||'').split(',').map(function(s){var p=s.trim().split(':');return {no:(p[0]||'').trim(),name:(p[1]||'').trim(),mats:[]}}).filter(function(r){return r.no});
+  PRJ.push({id:'P'+Date.now(),name:n,status:'ร่าง',cover:{},rooms:rooms,share:false});SS('prj',PRJ);rp();tst('สร้างโครงการแล้ว','ok')};
+function pick(pid,ri){CP=PRJ.filter(function(x){return x.id===pid})[0];CR=ri;
+  $('#rT').textContent='เลือกวัสดุ → ห้อง '+CP.rooms[ri].no+' '+CP.rooms[ri].name;
+  $('#rq').value='';$('#rn').value='';$('#rqt').value='';rs();op('ovR')}
+function quickRoom(id){if(!PRJ.length){tst('ยังไม่มีโครงการ','err');return}
+  CP=PRJ[0];CR=0;$('#rT').textContent='เลือกวัสดุ → '+CP.name;$('#rq').value=id;rs();op('ovR')}
+function rs(){var q=$('#rq').value.trim().toLowerCase();
+  var a=q?ITEMS.filter(function(i){return (i.id+' '+(i.old||'')+' '+i.name+' '+(i.brand||'')).toLowerCase().indexOf(q)>=0}).slice(0,40):[];
+  $('#rr').innerHTML=!q?'<p style="padding:13px;color:var(--mut);font-size:12px">พิมพ์เพื่อค้นหา…</p>':
+    (a.length?a.map(function(i){return '<div style="display:flex;gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);font-size:12px">'+
+      '<span class="mid" style="width:76px">'+esc(i.id)+'</span><span style="flex:1">'+esc(i.name.slice(0,44))+'</span>'+
+      '<button class="btn sm" data-a="'+i.id+'">เพิ่ม</button></div>'}).join(''):'<p style="padding:13px;color:var(--mut);font-size:12px">ไม่พบ</p>');
+  $$('#rr [data-a]').forEach(function(b){b.onclick=function(){am(b.dataset.a)}})}
+$('#rq').addEventListener('input',rs);
+function am(id){var r=CP.rooms[CR];r.mats=r.mats||[];
+  if(r.mats.some(function(m){return m.id===id})){tst('ห้องนี้มีแล้ว','err');return}
+  r.mats.push({id:id,note:$('#rn').value.trim(),qty:$('#rqt').value.trim()});SS('prj',PRJ);rp();tst('เพิ่ม '+id+' → ห้อง '+r.no,'ok')}
+function fs(pid){var p=PRJ.filter(function(x){return x.id===pid})[0],b=$('#fs-'+pid);
+  if(b.innerHTML){b.innerHTML='';return}
+  var g={};(p.rooms||[]).forEach(function(r){(r.mats||[]).forEach(function(m){var i=byId(m.id)||{};var k=i.gn||i.grp||'อื่นๆ';
+    g[k]=g[k]||{};(g[k][r.no]=g[k][r.no]||[]).push(m.id)})});
+  var ks=Object.keys(g).sort();
+  b.innerHTML=ks.length?'<table class="fs"><thead><tr><th>ประเภทงาน</th>'+(p.rooms||[]).map(function(r){return '<th>'+esc(r.no)+'<br><span style="font-weight:400">'+esc(r.name)+'</span></th>'}).join('')+'</tr></thead><tbody>'+
+    ks.map(function(k){return '<tr><td><b>'+esc(k)+'</b></td>'+(p.rooms||[]).map(function(r){var v=g[k][r.no];return v?'<td>'+v.map(esc).join(', ')+'</td>':'<td class="e">—</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>'
+    :'<p style="color:var(--mut);font-size:12px;margin-top:9px">ยังไม่มีวัสดุ — กด “＋ วัสดุ” ในห้อง</p>'}
+function boq(pid){var p=PRJ.filter(function(x){return x.id===pid})[0];
+  var rows=[['รหัสเต็ม','รหัส','รายละเอียด','แบรนด์','เกรด','หน่วย','ราคา/หน่วย','ห้อง','ตำแหน่ง','จำนวน','รวม']],t=0;
+  (p.rooms||[]).forEach(function(r){(r.mats||[]).forEach(function(m){var i=byId(m.id)||{};
+    var q=parseFloat(m.qty)||0,pr=parseFloat(i.price)||0,s=q*pr;t+=s;
+    rows.push([i.fid||'',i.id||m.id,i.name||'',i.brand||'',i.grade||'',i.unit||'',pr||'',r.no,m.note||'',m.qty||'',s||''])})});
+  if(rows.length<2){tst('ยังไม่มีวัสดุในโครงการ','err');return}
+  rows.push(['','','','','','','','','','รวม',t]);
+  var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c==null?'':c).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='BOQ_'+p.name.replace(/[^\wก-๙\-]/g,'_')+'.csv';a.click();tst('ส่งออก CSV แล้ว ('+(rows.length-2)+' รายการ)','ok')}
+function present(pid){var p=PRJ.filter(function(x){return x.id===pid})[0];
+  $('#pvb').innerHTML='<div class="pcov"><h1>'+esc(p.name)+'</h1><p>'+esc((p.cover&&p.cover.site)||'')+
+    ((p.cover&&p.cover.no)?' · แบบเลขที่ '+esc(p.cover.no):'')+'</p><p style="margin-top:11px;font-size:12px;opacity:.72">รายการวัสดุประกอบแบบ · MA.FC GROUP</p></div>'+
+    '<div class="pw">'+(p.rooms||[]).map(function(r){return '<div class="prm"><h2><span class="no">'+esc(r.no)+'</span>'+esc(r.name)+'</h2>'+
+      '<div class="pms">'+((r.mats||[]).length?r.mats.map(function(m){var i=byId(m.id)||{};
+        return '<div class="pm"><div class="pi">'+(i.img?'<img alt="" src="'+esc(i.img)+'" onerror="this.parentNode.textContent=\'\'">':'')+'</div>'+
+        '<div class="pb"><div class="pk">'+esc(i.brand||'')+(i.grade?' · เกรด '+esc(i.grade):'')+'</div>'+
+        '<div class="pn">'+esc(i.name||m.id)+'</div>'+(m.note?'<div class="pk" style="margin-top:3px">'+esc(m.note)+'</div>':'')+'</div></div>'}).join('')
+        :'<p style="color:#94a3b8;font-size:13px">— ยังไม่ระบุ —</p>')+'</div></div>'}).join('')+
+    '<p style="text-align:center;color:#94a3b8;font-size:12px;padding:16px">ราคาและข้อมูลภายในไม่แสดงในหน้านี้ · ลิงก์นี้ปิดได้ทุกเมื่อ</p></div>';
+  $('#pv').classList.add('show')}
+function cp(){$('#pv').classList.remove('show')}
+/* QA */
+function rqa(){
+  var dup={},seen={},noPrice=[],noImg=[],stale=[],odd=[];
+  ITEMS.forEach(function(i){
+    var k=i.disc+'|'+i.id;if(seen[k])dup[k]=1;seen[k]=1;
+    if(!i.price)noPrice.push(i);if(!i.img&&i.disc==='FF')noImg.push(i);
+    if(isStale(i.pd))stale.push(i);
+    if(i.old&&!/^[A-Z]{1,3}\d{1,2}-\d{1,2}$/.test(i.old))odd.push(i);
+  });
+  function box(t,n,c,list){return '<div class="pj"><b style="font-size:14px">'+t+'</b> <span class="pill" style="color:'+c+'">'+n+' รายการ</span>'+
+    '<div style="font-size:11.5px;color:var(--mut);margin-top:7px;line-height:1.7">'+list.slice(0,12).map(function(i){return esc(i.id)+' '+esc((i.name||'').slice(0,34))}).join('<br>')+(list.length>12?'<br>… อีก '+(list.length-12):'')+'</div></div>'}
+  $('#qa').innerHTML=box('⚠ ราคาเก่ากว่า 90 วัน',stale.length,'#FBBF24',stale)+
+    box('💰 ยังไม่มีราคา',noPrice.length,'#F87171',noPrice)+
+    box('🖼 งานตกแต่งผิวที่ยังไม่มีรูป',noImg.length,'#8CA2C2',noImg)+
+    box('🔤 รหัสเดิมผิดแบบแผน (ระบบออกรหัสใหม่ให้แล้ว)',odd.length,'#7DD3FC',odd);
+}
+/* tabs + google */
+$$('nav.tb button').forEach(function(b){b.onclick=function(){$$('nav.tb button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');
+  ['lib','prj','qa'].forEach(function(v){$('#v-'+v).classList.toggle('hide',v!==b.dataset.v)})}});
+$('#gs').onclick=function(){SIGNED=!SIGNED;$('#gsl').textContent=SIGNED?'ทีม · sm.th1438':'เข้าสู่ระบบ';
+  tst(SIGNED?'เข้าสู่ระบบแล้ว (ตัวอย่าง) — แก้ไข/เห็นราคาได้':'ออกจากระบบ — โหมดดูอย่างเดียว','ok')};
+load();
+</script>
+</body>
+</html>
