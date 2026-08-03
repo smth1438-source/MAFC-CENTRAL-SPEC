@@ -2060,24 +2060,29 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   function isStale(pd){ var d=staleDays(pd); return d===null || d>STALE_DAYS; }
 
   /* ---------- helper: รวมวัสดุทุกหมวดจาก ROWS ---------- */
-  function allItems(){
-    var out=[];
+  /* index แคช — สร้างครั้งเดียวต่อการโหลดข้อมูล (กันหน้าค้าง) */
+  var _IDX=null,_IDXn=-1,_MAP=null;
+  function _sig(){ try{ var n=0;(CATS||[]).forEach(function(c){n+=(ROWS[c.id]||[]).length}); return n; }catch(e){ return -1; } }
+  function buildIdx(){
+    var out=[],map={};
     try{
       (CATS||[]).forEach(function(c){
         (ROWS[c.id]||[]).forEach(function(it){
-          out.push(Object.assign({},it,{_cat:c.name||c.sheet,_disc:c.disc,_catCode:c.code}));
+          var o=Object.assign({},it,{_cat:c.name||c.sheet,_disc:c.disc,_catCode:c.code});
+          out.push(o); var k=String(it.code||'').trim().toLowerCase(); if(k&&!map[k])map[k]=o;
         });
       });
     }catch(e){}
+    _IDX=out;_MAP=map;_IDXn=_sig();
     return out;
   }
+  function allItems(){ var n=_sig(); if(!_IDX||n!==_IDXn) buildIdx(); return _IDX||[]; }
   function findItem(code){
     if(!code) return null;
-    var k=String(code).trim().toLowerCase();
-    var a=allItems();
-    for(var i=0;i<a.length;i++) if(String(a[i].code||'').trim().toLowerCase()===k) return a[i];
-    return null;
+    allItems();
+    return (_MAP&&_MAP[String(code).trim().toLowerCase()])||null;
   }
+  window.mafcFindItem=findItem; window.mafcAllItems=allItems;
 
   /* =====================================================================
      1) หน้านำเสนอลูกค้า
@@ -2361,7 +2366,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
       var n=document.getElementById(id);
       if(n) new MutationObserver(function(){ setTimeout(tick,60); }).observe(n,{childList:true,subtree:true});
     });
-    setInterval(tick,1500);
+    setInterval(function(){ if(!document.hidden) tick(); },4000);
     setTimeout(tick,800);
   }
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
@@ -2471,7 +2476,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
 
   var host=document.getElementById('modalHost');
   if(host) new MutationObserver(function(){ setTimeout(enhance,80); }).observe(host,{childList:true,subtree:true});
-  setInterval(function(){ try{ enhance(); }catch(e){} },1200);
+  setInterval(function(){ if(document.hidden) return; try{ enhance(); }catch(e){} },2500);
 })();
 
 /* ==========================================================================
@@ -2548,9 +2553,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     $$('#list [data-code]',host).forEach(function(el){
       if(el.dataset.mafcP3) return;
       var code=el.getAttribute('data-code');
-      var it=null;
-      try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
-        if(String(x.code||'').trim()===String(code).trim() && !it){ it=Object.assign({},x,{_disc:c.disc}); } }); }); }catch(e){}
+      var it=window.mafcFindItem?window.mafcFindItem(code):null;
       if(!it) return;
       el.dataset.mafcP3='1';
       var t=el.querySelector('.cdesc,h4,td:nth-child(2)')||el;
@@ -2665,8 +2668,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
       var rm=String(it.loc||'').trim()||'ไม่ระบุ';
       var no=rm.split(' ')[0];
       seen[no]=rm;
-      var m=null; try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
-        if(!m && String(x.code||'').trim()===it.code){ m=Object.assign({},x,{_disc:c.disc,_cat:c.name}); } }); }); }catch(e){}
+      var m=window.mafcFindItem?window.mafcFindItem(it.code):null;
       var mf=m?mfOf(m):null;
       var key=mf?('MF '+mf[0]+' · '+mf[1]):((m&&m.section)||'อื่นๆ');
       g[key]=g[key]||{}; (g[key][no]=g[key][no]||[]).push(it.code);
@@ -2695,8 +2697,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     var by={};
     items.forEach(function(it){
       var rm=String(it.loc||'').trim()||'ไม่ระบุ';
-      var m=null; try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
-        if(!m && String(x.code||'').trim()===it.code) m=Object.assign({},x,{_disc:c.disc}); }); }); }catch(e){}
+      var m=window.mafcFindItem?window.mafcFindItem(it.code):null;
       var mf=m?mfOf(m):null;
       var k=rm+' ‖ '+(mf?('MF '+mf[0]):'อื่นๆ');
       (by[k]=by[k]||[]).push({code:it.code,name:it.name||(m&&m.desc)||''});
@@ -2732,7 +2733,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   function tick(){ try{ markRows(); histBtn(); roomsUI(); }catch(e){} }
   ['list','proj','app'].forEach(function(id){ var n=document.getElementById(id);
     if(n) new MutationObserver(function(){ setTimeout(tick,70); }).observe(n,{childList:true,subtree:true}); });
-  setInterval(tick,1600); setTimeout(tick,900);
+  setInterval(function(){ if(!document.hidden) tick(); },4000); setTimeout(tick,900);
 })();
 
 </script>
