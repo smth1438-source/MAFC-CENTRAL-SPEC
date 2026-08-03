@@ -2359,13 +2359,13 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   })();
 
   /* ---------- boot ---------- */
+  var _busy1=false;
   function boot(){
     if(PRESENT_ID){ bootPresent(); return; }        // โหมดลูกค้า
-    var tick=function(){ try{ markStale(); qaButton(); shareUI(); }catch(e){} };
-    ['list','proj','app'].forEach(function(id){
-      var n=document.getElementById(id);
-      if(n) new MutationObserver(function(){ setTimeout(tick,60); }).observe(n,{childList:true,subtree:true});
-    });
+    var tick=function(){ if(_busy1) return; _busy1=true;
+      try{ markStale(); qaButton(); shareUI(); }catch(e){} finally{ _busy1=false; } };
+    var _n1=document.getElementById('list');
+    if(_n1) new MutationObserver(function(){ if(!_busy1) setTimeout(tick,180); }).observe(_n1,{childList:true});
     setInterval(function(){ if(!document.hidden) tick(); },4000);
     setTimeout(tick,800);
   }
@@ -2474,8 +2474,9 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     warn(inp);
   }
 
-  var host=document.getElementById('modalHost');
-  if(host) new MutationObserver(function(){ setTimeout(enhance,80); }).observe(host,{childList:true,subtree:true});
+  var host=document.getElementById('modalHost'), _bz=false;
+  if(host) new MutationObserver(function(){ if(_bz)return; _bz=true;
+    setTimeout(function(){ try{ enhance(); }catch(e){} _bz=false; },160); }).observe(host,{childList:true});
   setInterval(function(){ if(document.hidden) return; try{ enhance(); }catch(e){} },2500);
 })();
 
@@ -2654,7 +2655,10 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
       dl.innerHTML=rooms.map(function(r){return '<option value="'+esc(r.no+' '+r.name)+'">'}).join('');
       dl.dataset.n=rooms.length;
     }
-    $$('#proj input').forEach(function(i){
+    var todo=$$('#proj input:not([data-mafcdl])');
+    if(todo.length>400) todo=todo.slice(0,400);
+    todo.forEach(function(i){
+      i.dataset.mafcdl='1';
       var ph=(i.getAttribute('placeholder')||'');
       if(/ตำแหน่ง|ห้อง/.test(ph) || i.dataset.pk==='location'){ i.setAttribute('list','mafcRoomDL'); }
     });
@@ -2730,9 +2734,11 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     b.onclick=histOpen; w.insertBefore(b, w.firstChild);
   }
 
-  function tick(){ try{ markRows(); histBtn(); roomsUI(); }catch(e){} }
-  ['list','proj','app'].forEach(function(id){ var n=document.getElementById(id);
-    if(n) new MutationObserver(function(){ setTimeout(tick,70); }).observe(n,{childList:true,subtree:true}); });
+  var _busy3=false;
+  function tick(){ if(_busy3) return; _busy3=true;
+    try{ markRows(); histBtn(); roomsUI(); }catch(e){} finally{ _busy3=false; } }
+  var _n3=document.getElementById('list');
+  if(_n3) new MutationObserver(function(){ if(!_busy3) setTimeout(tick,200); }).observe(_n3,{childList:true});
   setInterval(function(){ if(!document.hidden) tick(); },4000); setTimeout(tick,900);
 })();
 
