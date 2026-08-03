@@ -2464,6 +2464,252 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   setInterval(function(){ try{ enhance(); }catch(e){} },1200);
 })();
 
+/* ==========================================================================
+   MA.FC V4 — ADD-ON เฟส 3 : ยกระดับตามมาตรฐานสากล
+   A) ประวัติราคา/การแก้ไข        B) ผังห้อง + ตารางรวมทั้งบ้าน
+   C) ทางเลือกวัสดุ A/B/C          D) MasterFormat Division ในรายละเอียดวัสดุ
+   E) สถานะอนุมัติ (เสนอ→อนุมัติ→สั่งซื้อ)
+   ========================================================================== */
+(function(){ "use strict";
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})};
+
+  /* ===== D) MasterFormat Division (CSI 2020) ===== */
+  var MF_BY_DISC={GN:['01','General Requirements'],ST:['03','Concrete'],AR:['04','Masonry'],
+    FF:['09','Finishes'],EE:['26','Electrical'],SN:['22','Plumbing'],MVAC:['23','HVAC'],
+    ID:['12','Furnishings'],LA:['32','Exterior Improvements'],EXT:['32','Exterior Improvements']};
+  var MF_KW=[
+    [/เหล็กรูปพรรณ|เหล็กกล่อง|โครงหลังคาเหล็ก|steel/i,['05','Metals']],
+    [/ไม้|plywood|ไม้อัด/i,['06','Wood, Plastics, Composites']],
+    [/กันซึม|waterproof|ฉนวน|insulat/i,['07','Thermal & Moisture Protection']],
+    [/ประตู|หน้าต่าง|door|window|กระจก|glass/i,['08','Openings']],
+    [/กระเบื้อง|สี|ทาสี|ฝ้า|พื้น|ผนัง|paint|tile|ceiling/i,['09','Finishes']],
+    [/สุขภัณฑ์|ชักโครก|อ่างล้าง|ฝักบัว|กระจกเงา|ราวจับ/i,['10','Specialties']],
+    [/เฟอร์นิเจอร์|บิลท์อิน|furniture/i,['12','Furnishings']],
+    [/ลิฟต์|elevator/i,['14','Conveying Equipment']],
+    [/ดับเพลิง|sprinkler|fire/i,['21','Fire Suppression']],
+    [/ท่อ|ปั๊มน้ำ|ถังบำบัด|ถังเก็บน้ำ|บ่อพัก|ไขมัน|pvc|pp-r|plumb/i,['22','Plumbing']],
+    [/แอร์|ปรับอากาศ|พัดลม|ระบายอากาศ|hvac|duct/i,['23','HVAC']],
+    [/สวิตช์|ปลั๊ก|โคม|ดาวน์ไลท์|สายไฟ|เบรกเกอร์|mccb|load center|thw|electric/i,['26','Electrical']],
+    [/กล้องวงจรปิด|cctv|lan|โทรศัพท์|network/i,['27','Communications']],
+    [/เสาเข็ม|ดิน|ถมดิน|earth/i,['31','Earthwork']],
+    [/ถนน|รั้ว|ลานจอด|ภูมิทัศน์|ต้นไม้|หญ้า/i,['32','Exterior Improvements']],
+    [/คอนกรีต|ค.ส.ล|ฐานราก|เสา|คาน|พื้นหล่อ|concrete/i,['03','Concrete']],
+    [/อิฐ|ก่อผนัง|มวลเบา|masonry|block/i,['04','Masonry']]
+  ];
+  function mfOf(it){
+    var t=String((it&&it.desc)||'')+' '+String((it&&it.section)||'');
+    for(var i=0;i<MF_KW.length;i++) if(MF_KW[i][0].test(t)) return MF_KW[i][1];
+    return MF_BY_DISC[(it&&it._disc)||''] || null;
+  }
+  window.mafcMF=mfOf;
+
+  /* ===== E) สถานะอนุมัติ ===== */
+  var ST_MAP={'ร่าง':['#374151','#D1D5DB'],'เสนอ':['#3F2D0A','#FBBF24'],'เสนอลูกค้า':['#3F2D0A','#FBBF24'],
+    'อนุมัติ':['#064E3B','#6EE7B7'],'สั่งซื้อ':['#0E2A4F','#7DD3FC'],'ยกเลิก':['#3F1414','#FCA5A5']};
+  function stColor(s){ s=String(s||'').trim(); for(var k in ST_MAP) if(s.indexOf(k)>=0) return ST_MAP[k]; return null; }
+
+  /* ===== ป้ายในหน้ารายการ: MasterFormat + สถานะ ===== */
+  function css(){
+    if($('#mafcP3Css')) return;
+    var s=document.createElement('style'); s.id='mafcP3Css';
+    s.textContent='.mafc-mf{display:inline-block;font-size:9.5px;font-weight:700;background:#0B2E4A;color:#7DD3FC;'+
+      'border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}'+
+      '.mafc-st{display:inline-block;font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 6px;margin-left:5px}'+
+      '.mafc-p3{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:14px;overflow:auto}'+
+      '.mafc-p3 .bx{background:#0F1829;color:#EAF0FA;border:1px solid #22334E;border-radius:16px;max-width:900px;'+
+      'width:100%;padding:20px;max-height:88dvh;overflow:auto}'+
+      '.mafc-p3 h3{margin:0 0 12px;font-size:16px}'+
+      '.mafc-p3 table{width:100%;border-collapse:collapse;font-size:12px}'+
+      '.mafc-p3 th,.mafc-p3 td{border:1px solid #22334E;padding:6px 8px;text-align:left;white-space:nowrap}'+
+      '.mafc-p3 th{background:#0B1220;color:#8CA2C2;font-size:11px;position:sticky;top:0}'+
+      '.mafc-p3 td.e{color:#3A4A63}'+
+      '.mafc-p3 .x{width:100%;margin-top:12px;background:#3B82F6;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:600;cursor:pointer}'+
+      '.mafc-p3 .up{color:#FCA5A5}.mafc-p3 .dn{color:#6EE7B7}'+
+      '.mafc-tools{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}'+
+      '.mafc-tools button{font-size:12px;background:none;border:1px solid #243654;color:#EAF0FA;border-radius:8px;padding:5px 11px;cursor:pointer}';
+    document.head.appendChild(s);
+  }
+  function markRows(){
+    css();
+    var host=$('#list'); if(!host) return;
+    $$('#list [data-code]',host).forEach(function(el){
+      if(el.dataset.mafcP3) return;
+      var code=el.getAttribute('data-code');
+      var it=null;
+      try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
+        if(String(x.code||'').trim()===String(code).trim() && !it){ it=Object.assign({},x,{_disc:c.disc}); } }); }); }catch(e){}
+      if(!it) return;
+      el.dataset.mafcP3='1';
+      var t=el.querySelector('.cdesc,h4,td:nth-child(2)')||el;
+      var mf=mfOf(it);
+      if(mf){ var b=document.createElement('span'); b.className='mafc-mf';
+        b.title='MasterFormat Division '+mf[0]+' — '+mf[1]; b.textContent='MF '+mf[0]; t.appendChild(b); }
+      var sc=stColor(it.status);
+      if(sc){ var s2=document.createElement('span'); s2.className='mafc-st';
+        s2.style.background=sc[0]; s2.style.color=sc[1]; s2.textContent=String(it.status).trim(); t.appendChild(s2); }
+    });
+  }
+
+  /* ===== A) ประวัติราคา / การแก้ไข ===== */
+  function jp(u,ms){ return (typeof jsonp==='function')?jsonp(u,ms||20000):Promise.reject(new Error('no jsonp')); }
+  async function histOpen(){
+    css();
+    var ov=document.createElement('div'); ov.className='mafc-p3';
+    ov.innerHTML='<div class="bx"><h3>🕘 ประวัติราคา / การแก้ไข</h3><div id="mafcHistB">กำลังโหลด…</div><button class="x">ปิด</button></div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov||e.target.className==='x') ov.remove(); });
+    document.body.appendChild(ov);
+    try{
+      var r=await jp(CFG.url+'?action=priceLog',20000);
+      var log=(r&&r.log)||[];
+      if(!log.length){ $('#mafcHistB').textContent='ยังไม่มีประวัติ (ระบบจะบันทึกทุกครั้งที่แก้ราคา)'; return; }
+      log.sort(function(a,b){ return String(b.time).localeCompare(String(a.time)); });
+      $('#mafcHistB').innerHTML='<div style="overflow:auto;max-height:60dvh"><table><thead><tr>'+
+        '<th>เวลา</th><th>หมวด</th><th>รหัส</th><th>ราคาเดิม</th><th>ราคาใหม่</th><th>เปลี่ยน</th><th>ผู้แก้</th></tr></thead><tbody>'+
+        log.slice(0,300).map(function(x){
+          var o=parseFloat(String(x.oldP).replace(/[^0-9.\-]/g,''))||0, n=parseFloat(String(x.newP).replace(/[^0-9.\-]/g,''))||0;
+          var d=(o&&n)?Math.round((n-o)/o*1000)/10:null;
+          return '<tr><td>'+esc(String(x.time).slice(0,16))+'</td><td>'+esc(x.cat)+'</td><td>'+esc(x.code)+'</td>'+
+            '<td>'+esc(x.oldP)+'</td><td>'+esc(x.newP)+'</td>'+
+            '<td class="'+(d>0?'up':(d<0?'dn':''))+'">'+(d===null?'—':(d>0?'▲ +':'▼ ')+d+'%')+'</td>'+
+            '<td>'+esc(x.user||'')+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    }catch(e){ $('#mafcHistB').textContent='โหลดประวัติไม่สำเร็จ: '+e.message; }
+  }
+
+  /* ===== B) ผังห้อง + ตารางรวมทั้งบ้าน ===== */
+  function projItems(){
+    // อ่านรายการในโครงการที่เปิดอยู่จากตารางในหน้า #proj
+    var rows=$$('#proj [data-pi],#proj tbody tr');
+    var out=[];
+    rows.forEach(function(tr){
+      var code=(tr.querySelector('.pi-code,td:first-child')||{}).textContent||'';
+      var loc=tr.querySelector('input[data-pk="location"],input[placeholder*="ตำแหน่ง"]');
+      var name=(tr.querySelector('.pi-desc,td:nth-child(2)')||{}).textContent||'';
+      code=String(code).trim();
+      if(code) out.push({code:code,name:String(name).trim(),loc:loc?loc.value:'',el:tr});
+    });
+    return out;
+  }
+  function roomKey(){ try{ return 'mafc_rooms_'+((typeof CURPROJ!=='undefined'&&CURPROJ&&CURPROJ.id)||'x'); }catch(e){ return 'mafc_rooms_x'; } }
+  function getRooms(){ try{ return JSON.parse(localStorage.getItem(roomKey())||'[]'); }catch(e){ return []; } }
+  function setRooms(a){ try{ localStorage.setItem(roomKey(),JSON.stringify(a)); }catch(e){} }
+  function roomsUI(){
+    var host=$('#proj'); if(!host||host.classList.contains('hidden')) return;
+    if($('#mafcP3Bar')) { attachDatalist(); return; }
+    css();
+    var bar=document.createElement('div'); bar.id='mafcP3Bar'; bar.className='mafc-tools';
+    bar.innerHTML='<button id="mafcRooms">🏠 ตั้งผังห้อง</button>'+
+      '<button id="mafcFS">📋 ตารางรวมทั้งบ้าน (Finish Schedule)</button>'+
+      '<button id="mafcOpt">🔀 ทางเลือก A/B/C</button>';
+    var sb=$('#mafcShareBar');
+    (sb?sb.parentNode:host).insertBefore(bar, sb?sb.nextSibling:host.firstChild);
+    $('#mafcRooms',bar).onclick=function(){
+      var cur=getRooms().map(function(r){return r.no+':'+r.name}).join(', ');
+      var v=prompt('ผังห้องของโครงการ (รูปแบบ เลข:ชื่อ คั่นด้วย ,)\nเช่น 101:นั่งเล่น, 102:ครัว, 103:ห้องน้ำล่าง, 201:นอนใหญ่, EXT:ภายนอก',
+        cur||'101:นั่งเล่น, 102:ครัว, 103:ห้องน้ำล่าง, 201:นอนใหญ่, EXT:ภายนอก');
+      if(v===null) return;
+      var rooms=v.split(',').map(function(s){var p=s.trim().split(':');return {no:(p[0]||'').trim(),name:(p[1]||'').trim()}}).filter(function(r){return r.no});
+      setRooms(rooms); attachDatalist(true);
+      alert('บันทึกผังห้องแล้ว '+rooms.length+' ห้อง — ช่อง "ตำแหน่ง" จะมีตัวเลือกให้เลือกแล้ว');
+    };
+    $('#mafcFS',bar).onclick=fsOpen;
+    $('#mafcOpt',bar).onclick=optOpen;
+    attachDatalist();
+  }
+  function attachDatalist(force){
+    var rooms=getRooms(); if(!rooms.length) return;
+    var dl=$('#mafcRoomDL');
+    if(!dl){ dl=document.createElement('datalist'); dl.id='mafcRoomDL'; document.body.appendChild(dl); }
+    if(force||!dl.dataset.n||+dl.dataset.n!==rooms.length){
+      dl.innerHTML=rooms.map(function(r){return '<option value="'+esc(r.no+' '+r.name)+'">'}).join('');
+      dl.dataset.n=rooms.length;
+    }
+    $$('#proj input').forEach(function(i){
+      var ph=(i.getAttribute('placeholder')||'');
+      if(/ตำแหน่ง|ห้อง/.test(ph) || i.dataset.pk==='location'){ i.setAttribute('list','mafcRoomDL'); }
+    });
+  }
+  function fsOpen(){
+    css();
+    var items=projItems(), rooms=getRooms();
+    var roomNos=rooms.length?rooms.map(function(r){return r.no}):null;
+    var g={}, seen={};
+    items.forEach(function(it){
+      var rm=String(it.loc||'').trim()||'ไม่ระบุ';
+      var no=rm.split(' ')[0];
+      seen[no]=rm;
+      var m=null; try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
+        if(!m && String(x.code||'').trim()===it.code){ m=Object.assign({},x,{_disc:c.disc,_cat:c.name}); } }); }); }catch(e){}
+      var mf=m?mfOf(m):null;
+      var key=mf?('MF '+mf[0]+' · '+mf[1]):((m&&m.section)||'อื่นๆ');
+      g[key]=g[key]||{}; (g[key][no]=g[key][no]||[]).push(it.code);
+    });
+    var cols=roomNos||Object.keys(seen);
+    var ov=document.createElement('div'); ov.className='mafc-p3';
+    var ks=Object.keys(g).sort();
+    ov.innerHTML='<div class="bx"><h3>📋 ตารางรวมทั้งบ้าน — Room Finish Schedule</h3>'+
+      (ks.length?'<div style="overflow:auto;max-height:62dvh"><table><thead><tr><th>ประเภทงาน (MasterFormat)</th>'+
+        cols.map(function(n){var r=rooms.filter(function(x){return x.no===n})[0];
+          return '<th>'+esc(n)+(r?'<br><span style="font-weight:400">'+esc(r.name)+'</span>':'')+'</th>'}).join('')+'</tr></thead><tbody>'+
+        ks.map(function(k){ return '<tr><td><b>'+esc(k)+'</b></td>'+cols.map(function(n){
+          var v=g[k][n]; return v?'<td>'+v.map(esc).join(', ')+'</td>':'<td class="e">—</td>'}).join('')+'</tr>'}).join('')+
+        '</tbody></table></div>'
+        :'<p style="color:#8CA2C2">ยังไม่มีรายการวัสดุในโครงการ หรือยังไม่ได้กรอกช่อง "ตำแหน่ง"</p>')+
+      '<button class="x">ปิด</button></div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov||e.target.className==='x') ov.remove(); });
+    document.body.appendChild(ov);
+  }
+
+  /* ===== C) ทางเลือกวัสดุ A/B/C ===== */
+  function optOpen(){
+    css();
+    var items=projItems();
+    var by={};
+    items.forEach(function(it){
+      var rm=String(it.loc||'').trim()||'ไม่ระบุ';
+      var m=null; try{ (CATS||[]).forEach(function(c){ (ROWS[c.id]||[]).forEach(function(x){
+        if(!m && String(x.code||'').trim()===it.code) m=Object.assign({},x,{_disc:c.disc}); }); }); }catch(e){}
+      var mf=m?mfOf(m):null;
+      var k=rm+' ‖ '+(mf?('MF '+mf[0]):'อื่นๆ');
+      (by[k]=by[k]||[]).push({code:it.code,name:it.name||(m&&m.desc)||''});
+    });
+    var multi=Object.keys(by).filter(function(k){return by[k].length>1});
+    var ov=document.createElement('div'); ov.className='mafc-p3';
+    ov.innerHTML='<div class="bx"><h3>🔀 ทางเลือกวัสดุ (จุดที่มีมากกว่า 1 ตัวเลือก)</h3>'+
+      '<p style="font-size:12px;color:#8CA2C2;margin-bottom:10px">ระบบจับอัตโนมัติ: ห้องเดียวกัน + ประเภทงานเดียวกัน แต่มีหลายรายการ = เป็นทางเลือกให้ลูกค้าเลือก<br>'+
+      'ในหน้านำเสนอลูกค้าจะขึ้นป้าย <b>ตัวเลือก A / B / C</b> ให้อัตโนมัติ</p>'+
+      (multi.length? multi.map(function(k){ var p=k.split(' ‖ ');
+        return '<div style="border:1px solid #22334E;border-radius:10px;padding:11px;margin-bottom:9px">'+
+        '<b style="font-size:13px">ห้อง '+esc(p[0])+' · '+esc(p[1])+'</b>'+
+        '<div style="font-size:12px;color:#8CA2C2;margin-top:7px;line-height:1.8">'+
+        by[k].map(function(x,i){ return '<span style="background:#0E2A4F;color:#7DD3FC;border-radius:4px;padding:1px 7px;font-weight:700;font-size:10.5px">ตัวเลือก '+
+          String.fromCharCode(65+i)+'</span> '+esc(x.code)+' · '+esc(String(x.name).slice(0,44)); }).join('<br>')+'</div></div>'}).join('')
+        :'<p style="color:#8CA2C2">ยังไม่มีจุดที่มีหลายทางเลือก — เพิ่มวัสดุตัวที่ 2 ในห้องเดียวกัน+ประเภทงานเดียวกัน ระบบจะจับให้เอง</p>')+
+      '<button class="x">ปิด</button></div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov||e.target.className==='x') ov.remove(); });
+    document.body.appendChild(ov);
+  }
+
+  /* ===== ปุ่มประวัติ บนแถบบน ===== */
+  function histBtn(){
+    if($('#mafcHistBtn')) return;
+    var w=$('.apptop .row > div[style*="margin-left"]')||$('.apptop .row'); if(!w) return;
+    var b=document.createElement('button'); b.id='mafcHistBtn'; b.type='button'; b.className='btn ghost';
+    b.textContent='🕘 ประวัติราคา'; b.title='ประวัติการแก้ไขราคา';
+    b.setAttribute('aria-label','ประวัติการแก้ไขราคา');
+    b.style.cssText='font-size:12px;padding:5px 10px';
+    b.onclick=histOpen; w.insertBefore(b, w.firstChild);
+  }
+
+  function tick(){ try{ markRows(); histBtn(); roomsUI(); }catch(e){} }
+  ['list','proj','app'].forEach(function(id){ var n=document.getElementById(id);
+    if(n) new MutationObserver(function(){ setTimeout(tick,70); }).observe(n,{childList:true,subtree:true}); });
+  setInterval(tick,1600); setTimeout(tick,900);
+})();
+
 </script>
 </body>
 </html>
