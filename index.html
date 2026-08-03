@@ -2029,6 +2029,334 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     };
   }
 })();
+/* ===== V4 ADD-ON PHASE 1 ===== */
+/* ==========================================================================
+   MA.FC V4 — ADD-ON เฟส 1 (additive layer · ไม่แตะ engine)
+   1) ลิงก์นำเสนอลูกค้า  ?present=<projId>[&price=1]
+      - จัดกลุ่มตาม "ตำแหน่ง/ห้อง" · รูป+แบรนด์+เกรด
+      - เลือกโชว์ราคาได้ · มีปุ่มลิงก์ไปหน้าสินค้าผู้ผลิต
+   2) ปุ่ม "ลิงก์นำเสนอ" ในหน้าโครงการ (คัดลอกลิงก์ให้เลย)
+   3) ธงราคาเก่า (เกิน 90 วัน) ในหน้ารายการ
+   4) แผงตรวจสอบคุณภาพข้อมูล
+   5) แก้ BUG-06: กันข้อมูลรีเฟรชทับขณะเปิดหน้าต่างแก้ไข
+   ========================================================================== */
+(function(){ "use strict";
+  var STALE_DAYS = 90;
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})};
+
+  /* ---------- helper: วันที่ไทย → เก่าไหม ---------- */
+  function staleDays(pd){
+    if(!pd) return null;
+    var m=String(pd).match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    if(!m) return null;
+    var y=+m[3]; if(y>2400)y-=543; if(y<100)y+=2000;
+    var d=new Date(y,+m[2]-1,+m[1]);
+    if(isNaN(d)) return null;
+    return Math.floor((Date.now()-d.getTime())/864e5);
+  }
+  function isStale(pd){ var d=staleDays(pd); return d===null || d>STALE_DAYS; }
+
+  /* ---------- helper: รวมวัสดุทุกหมวดจาก ROWS ---------- */
+  function allItems(){
+    var out=[];
+    try{
+      (CATS||[]).forEach(function(c){
+        (ROWS[c.id]||[]).forEach(function(it){
+          out.push(Object.assign({},it,{_cat:c.name||c.sheet,_disc:c.disc,_catCode:c.code}));
+        });
+      });
+    }catch(e){}
+    return out;
+  }
+  function findItem(code){
+    if(!code) return null;
+    var k=String(code).trim().toLowerCase();
+    var a=allItems();
+    for(var i=0;i<a.length;i++) if(String(a[i].code||'').trim().toLowerCase()===k) return a[i];
+    return null;
+  }
+
+  /* =====================================================================
+     1) หน้านำเสนอลูกค้า
+     ===================================================================== */
+  var PRESENT_ID=null, SHOW_PRICE=false;
+  (function(){
+    var p=new URLSearchParams(location.search);
+    PRESENT_ID=p.get('present');
+    SHOW_PRICE=p.get('price')==='1';
+  })();
+
+  function presentCSS(){
+    if($('#mafcPvCss')) return;
+    var s=document.createElement('style'); s.id='mafcPvCss';
+    s.textContent=
+    '#mafcPv{position:fixed;inset:0;z-index:9999;background:#fff;color:#0f172a;overflow:auto;'+
+    'font-family:"Segoe UI",Tahoma,sans-serif;-webkit-text-size-adjust:100%}'+
+    '#mafcPv .cov{background:linear-gradient(140deg,#0B1220 0%,#1D4ED8 100%);color:#fff;padding:clamp(30px,8vw,58px) 22px}'+
+    '#mafcPv .cov h1{font-size:clamp(21px,5.5vw,31px);margin:0;font-weight:800;text-wrap:balance;line-height:1.25}'+
+    '#mafcPv .cov p{margin:7px 0 0;opacity:.88;font-size:14px}'+
+    '#mafcPv .cov .brand{margin-top:14px;font-size:11.5px;opacity:.7;letter-spacing:.1em}'+
+    '#mafcPv .wrap{max-width:960px;margin:0 auto;padding:20px 16px 70px}'+
+    '#mafcPv .rm{border:1px solid #e5e7eb;border-radius:16px;padding:15px;margin-bottom:16px}'+
+    '#mafcPv .rm h2{font-size:16.5px;margin:0;display:flex;gap:9px;align-items:center;flex-wrap:wrap}'+
+    '#mafcPv .rm .no{font-family:ui-monospace,Consolas,monospace;background:#EFF6FF;color:#1D4ED8;'+
+    'border-radius:6px;padding:2px 9px;font-size:13px}'+
+    '#mafcPv .ms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:12px;margin-top:12px}'+
+    '#mafcPv .m{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}'+
+    '#mafcPv .m .im{aspect-ratio:4/3;background:#f1f5f9;display:grid;place-items:center;color:#94a3b8;font-size:11px;overflow:hidden}'+
+    '#mafcPv .m .im img{width:100%;height:100%;object-fit:cover;display:block}'+
+    '#mafcPv .m .bd{padding:10px;display:flex;flex-direction:column;gap:4px;flex:1}'+
+    '#mafcPv .m .k{font-size:11px;color:#64748b}'+
+    '#mafcPv .m .n{font-size:12.5px;line-height:1.45;color:#0f172a}'+
+    '#mafcPv .m .pz{font-size:13px;font-weight:700;color:#0f172a;font-variant-numeric:tabular-nums}'+
+    '#mafcPv .m a.lk{display:block;text-align:center;margin-top:auto;background:#1D4ED8;color:#fff;'+
+    'text-decoration:none;border-radius:8px;padding:7px 0;font-size:12px;font-weight:600}'+
+    '#mafcPv .m a.lk:hover{background:#1E40AF}'+
+    '#mafcPv .ft{text-align:center;color:#94a3b8;font-size:12px;padding:18px 10px;line-height:1.7}'+
+    '#mafcPv .bk{position:fixed;top:12px;right:14px;background:#0f172a;color:#fff;border:0;border-radius:9px;'+
+    'padding:8px 15px;font-size:13px;cursor:pointer;z-index:10000}'+
+    '#mafcPv .ld{padding:60px 20px;text-align:center;color:#64748b}'+
+    '@media print{#mafcPv .bk{display:none}#mafcPv .cov{background:#0B1220!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+    document.head.appendChild(s);
+  }
+
+  function renderPresent(proj, items, showPrice, canClose){
+    presentCSS();
+    var host=$('#mafcPv');
+    if(!host){ host=document.createElement('div'); host.id='mafcPv'; document.body.appendChild(host); }
+    var cov=proj.cover||{};
+    // จัดกลุ่มตามตำแหน่ง/ห้อง
+    var groups={}, order=[];
+    (items||[]).forEach(function(it){
+      var room=String(it.location||it.room||'').trim() || 'ไม่ระบุตำแหน่ง';
+      if(!groups[room]){ groups[room]=[]; order.push(room); }
+      groups[room].push(it);
+    });
+    var html='';
+    if(canClose) html+='<button class="bk" onclick="document.getElementById(\'mafcPv\').remove();history.replaceState(null,\'\',location.pathname)">✕ ปิด</button>';
+    html+='<div class="cov"><h1>'+esc(proj.name||cov.project||'รายการวัสดุประกอบแบบ')+'</h1>'+
+      (cov.site?'<p>'+esc(cov.site)+'</p>':'')+
+      (cov.drawingNo?'<p>แบบเลขที่ '+esc(cov.drawingNo)+'</p>':'')+
+      (cov.owner?'<p>เจ้าของอาคาร: '+esc(cov.owner)+'</p>':'')+
+      '<div class="brand">MA.FC GROUP · CENTRAL SPEC</div></div><div class="wrap">';
+
+    if(!order.length){
+      html+='<p style="text-align:center;color:#64748b;padding:40px 0">— ยังไม่มีรายการวัสดุในโครงการนี้ —</p>';
+    }
+    order.forEach(function(room){
+      html+='<div class="rm"><h2><span class="no">'+esc(room)+'</span></h2><div class="ms">';
+      groups[room].forEach(function(it){
+        var m=findItem(it.code)||{};
+        var img=it.img||m.img||'';
+        var name=it.desc||m.desc||it.code||'';
+        var brand=m.brand||'';
+        var grade=m.grade||'';
+        var link=it.link||m.link||'';
+        var price=(it.price!=null&&it.price!=='')?it.price:(m.price||'');
+        var unit=it.unit||m.unit||'';
+        html+='<div class="m"><div class="im">'+
+          (img?'<img loading="lazy" alt="" src="'+esc(img)+'" onerror="this.parentNode.textContent=\'\'">':'')+'</div>'+
+          '<div class="bd">'+
+          '<div class="k">'+esc(it.code||'')+(brand?' · '+esc(brand):'')+(grade?' · เกรด '+esc(grade):'')+'</div>'+
+          '<div class="n">'+esc(name)+'</div>'+
+          (it.note?'<div class="k">'+esc(it.note)+'</div>':'')+
+          (showPrice&&price?'<div class="pz">'+Number(String(price).replace(/[^0-9.\-]/g,'')||0).toLocaleString()+' ฿'+(unit?' / '+esc(unit):'')+'</div>':'')+
+          (link&&/^https?:\/\//i.test(link)?'<a class="lk" href="'+esc(link)+'" target="_blank" rel="noopener noreferrer">ดูสินค้าจากผู้ผลิต ↗</a>':'')+
+          '</div></div>';
+      });
+      html+='</div></div>';
+    });
+    html+='<div class="ft">'+(showPrice?'ราคาเป็นราคาประมาณการ ณ วันที่จัดทำ อาจเปลี่ยนแปลงได้':'เอกสารนี้ไม่แสดงราคา')+
+      '<br>จัดทำโดย MA.FC GROUP</div></div>';
+    host.innerHTML=html;
+  }
+
+  /* โหมดลูกค้า: เปิดจากลิงก์โดยตรง */
+  async function bootPresent(){
+    presentCSS();
+    var host=document.createElement('div'); host.id='mafcPv';
+    host.innerHTML='<div class="ld">กำลังโหลดรายการวัสดุ…</div>';
+    document.body.appendChild(host);
+    document.documentElement.style.overflow='hidden';
+    try{
+      var url=(typeof CFG!=='undefined'&&CFG.url)?CFG.url:'';
+      if(!url) throw new Error('ไม่พบการตั้งค่าระบบ');
+      var pr=await jsonp(url+'?action=projectsList',20000);
+      var list=(pr&&pr.projects)||[];
+      var proj=null;
+      list.forEach(function(o){ if(o&&String(o.id)===String(PRESENT_ID)&&!o.__deleted) proj=o; });
+      if(!proj) throw new Error('ไม่พบโครงการนี้ หรือลิงก์ถูกปิดแล้ว');
+      // โหลดคลังวัสดุเพื่อดึงรูป/แบรนด์/ลิงก์ผู้ผลิต
+      try{ var wb=await jsonp(url,40000); if(wb&&wb.sheets) parseWB(wb); }catch(e){}
+      renderPresent(proj, proj.items||[], SHOW_PRICE, false);
+    }catch(e){
+      host.innerHTML='<div class="ld">เปิดรายการไม่สำเร็จ<br><b>'+esc(e.message||'')+'</b></div>';
+    }
+  }
+
+  /* =====================================================================
+     2) ปุ่มลิงก์นำเสนอในหน้าโครงการ
+     ===================================================================== */
+  function shareUI(){
+    var host=$('#proj'); if(!host||host.classList.contains('hidden')) return;
+    if($('#mafcShareBar')) return;
+    // หา id โครงการที่เปิดอยู่ (engine เก็บใน state/CURRENT ตัวใดตัวหนึ่ง)
+    var pid=null, pname='';
+    try{
+      var cur = (typeof CURPROJ!=='undefined'&&CURPROJ) ? CURPROJ :
+                (typeof state!=='undefined'&&state&&state.proj) ? state.proj : null;
+      if(cur){ pid=cur.id; pname=cur.name||''; }
+      if(!pid && typeof PROJECTS!=='undefined' && PROJECTS.length===1){ pid=PROJECTS[0].id; pname=PROJECTS[0].name; }
+    }catch(e){}
+    var bar=document.createElement('div'); bar.id='mafcShareBar';
+    bar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0';
+    bar.innerHTML='<button type="button" class="btn" id="mafcShare">🔗 ลิงก์นำเสนอลูกค้า</button>'+
+      '<label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--gray,#94a3b8)">'+
+      '<input type="checkbox" id="mafcShowPrice"> แสดงราคาในลิงก์</label>'+
+      '<span id="mafcShareMsg" style="font-size:12px;color:var(--gray,#94a3b8)"></span>';
+    var anchor=$('#proj .row')||$('#proj');
+    anchor.parentNode.insertBefore(bar, anchor.nextSibling);
+    $('#mafcShare').onclick=function(){
+      var id=pid;
+      if(!id){
+        try{ var c=(typeof CURPROJ!=='undefined'&&CURPROJ)?CURPROJ:null; if(c)id=c.id; }catch(e){}
+      }
+      if(!id){ $('#mafcShareMsg').textContent='เปิดโครงการที่ต้องการก่อน'; return; }
+      var u=location.origin+location.pathname+'?present='+encodeURIComponent(id)+($('#mafcShowPrice').checked?'&price=1':'');
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(u).then(function(){ $('#mafcShareMsg').textContent='✓ คัดลอกลิงก์แล้ว — ส่งให้ลูกค้าได้เลย'; },
+          function(){ prompt('คัดลอกลิงก์นี้:',u); });
+      } else prompt('คัดลอกลิงก์นี้:',u);
+    };
+  }
+
+  /* ดูตัวอย่างหน้าลูกค้าในเครื่อง (ไม่ต้องส่งลิงก์) */
+  window.mafcPreviewPresent=function(projId,showPrice){
+    try{
+      var p=null;
+      (PROJECTS||[]).forEach(function(o){ if(String(o.id)===String(projId)) p=o; });
+      if(!p){ alert('ไม่พบโครงการ'); return; }
+      renderPresent(p, p.items||[], !!showPrice, true);
+    }catch(e){ alert('ผิดพลาด: '+e.message); }
+  };
+
+  /* =====================================================================
+     3) ธงราคาเก่า ในหน้ารายการ
+     ===================================================================== */
+  function flagCSS(){
+    if($('#mafcFlagCss')) return;
+    var s=document.createElement('style'); s.id='mafcFlagCss';
+    s.textContent='.mafc-fl{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;'+
+      'margin-left:6px;vertical-align:middle;white-space:nowrap}'+
+      '.mafc-fl.st{background:#3F2D0A;color:#FBBF24}.mafc-fl.np{background:#3F1414;color:#FCA5A5}'+
+      '.mafc-qa{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);display:grid;place-items:center;padding:14px;overflow:auto}'+
+      '.mafc-qa .bx{background:#0F1829;color:#EAF0FA;border:1px solid #22334E;border-radius:16px;max-width:560px;'+
+      'width:100%;padding:20px;max-height:88dvh;overflow:auto}'+
+      '.mafc-qa h3{margin:0 0 12px;font-size:16px}'+
+      '.mafc-qa .g{border:1px solid #22334E;border-radius:10px;padding:12px;margin-bottom:10px}'+
+      '.mafc-qa .g b{font-size:13.5px}.mafc-qa .g .c{font-size:11px;color:#8CA2C2;margin-left:6px}'+
+      '.mafc-qa .g ul{margin:8px 0 0;padding-left:18px;font-size:11.5px;color:#8CA2C2;line-height:1.75}'+
+      '.mafc-qa .x{width:100%;margin-top:6px;background:#3B82F6;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:600;cursor:pointer}';
+    document.head.appendChild(s);
+  }
+  function markStale(){
+    flagCSS();
+    var host=$('#list'); if(!host) return;
+    $$('#list [data-code]',host).forEach(function(el){
+      if(el.dataset.mafcFl) return;
+      var it=findItem(el.getAttribute('data-code'));
+      if(!it) return;
+      el.dataset.mafcFl='1';
+      var target=el.querySelector('.cdesc,h4,td:nth-child(2)')||el;
+      if(!it.price){ var b=document.createElement('span'); b.className='mafc-fl np'; b.textContent='ยังไม่มีราคา'; target.appendChild(b); }
+      else if(isStale(it.priceDate)){
+        var d=staleDays(it.priceDate);
+        var s=document.createElement('span'); s.className='mafc-fl st';
+        s.textContent=d===null?'⚠ ไม่ระบุวันที่ราคา':('⚠ ราคาเก่า '+d+' วัน');
+        target.appendChild(s);
+      }
+    });
+  }
+
+  /* =====================================================================
+     4) แผงตรวจสอบคุณภาพข้อมูล
+     ===================================================================== */
+  function qaOpen(){
+    flagCSS();
+    var a=allItems();
+    var noPrice=a.filter(function(i){return !i.price});
+    var stale=a.filter(function(i){return i.price&&isStale(i.priceDate)});
+    var noUnit=a.filter(function(i){return i.price&&!i.unit});
+    var noImg=a.filter(function(i){return !i.img});
+    var badCode=a.filter(function(i){return i.code&&!/^[A-Za-z]{1,4}\d{0,2}-\d{1,3}$/.test(String(i.code).trim())});
+    function g(t,list,color){
+      return '<div class="g"><b style="color:'+color+'">'+t+'</b><span class="c">'+list.length+' รายการ</span>'+
+        (list.length?'<ul>'+list.slice(0,15).map(function(i){
+          return '<li>'+esc(i.code||'-')+' · '+esc(String(i.desc||'').slice(0,42))+' <span style="opacity:.6">('+esc(i._disc||'')+')</span></li>'
+        }).join('')+(list.length>15?'<li>… อีก '+(list.length-15)+' รายการ</li>':'')+'</ul>':'') + '</div>';
+    }
+    var ov=document.createElement('div'); ov.className='mafc-qa';
+    ov.innerHTML='<div class="bx"><h3>🔍 ตรวจสอบคุณภาพข้อมูล ('+a.length+' รายการ)</h3>'+
+      g('💰 ยังไม่มีราคา',noPrice,'#FCA5A5')+
+      g('⚠ ราคาเก่ากว่า '+STALE_DAYS+' วัน',stale,'#FBBF24')+
+      g('📏 มีราคาแต่ไม่มีหน่วย (เสี่ยงคิด BOQ ผิด)',noUnit,'#FCA5A5')+
+      g('🖼 ยังไม่มีรูป',noImg,'#8CA2C2')+
+      g('🔤 รหัสผิดแบบแผน',badCode,'#7DD3FC')+
+      '<button class="x">ปิด</button></div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov||e.target.className==='x') ov.remove(); });
+    document.body.appendChild(ov);
+  }
+  function qaButton(){
+    if($('#mafcQaBtn')) return;
+    var w=$('.apptop .row > div[style*="margin-left"]')||$('.apptop .row');
+    if(!w) return;
+    var b=document.createElement('button');
+    b.id='mafcQaBtn'; b.type='button'; b.className='btn ghost';
+    b.title='ตรวจสอบคุณภาพข้อมูล'; b.setAttribute('aria-label','ตรวจสอบคุณภาพข้อมูล');
+    b.textContent='🔍 ตรวจข้อมูล';
+    b.style.cssText='font-size:12px;padding:5px 10px';
+    b.onclick=qaOpen;
+    w.insertBefore(b, w.firstChild);
+  }
+
+  /* =====================================================================
+     5) BUG-06: กันข้อมูลรีเฟรชทับขณะเปิดหน้าต่างแก้ไข
+     ===================================================================== */
+  (function(){
+    if(typeof parseWB!=='function') return;
+    var orig=parseWB, pending=null;
+    window.parseWB=function(d){
+      var modalOpen=!!document.querySelector('#modalHost .ov');
+      if(modalOpen){ pending=d; return; }          // เก็บไว้ก่อน ไม่ทับข้อมูลที่กำลังแก้
+      return orig.apply(this,arguments);
+    };
+    // เมื่อ modal ปิด → นำข้อมูลที่ค้างมาใช้
+    var host=document.getElementById('modalHost');
+    if(host) new MutationObserver(function(){
+      if(!document.querySelector('#modalHost .ov') && pending){
+        var d=pending; pending=null;
+        try{ orig(d); if(typeof renderList==='function')renderList(); }catch(e){}
+      }
+    }).observe(host,{childList:true,subtree:true});
+  })();
+
+  /* ---------- boot ---------- */
+  function boot(){
+    if(PRESENT_ID){ bootPresent(); return; }        // โหมดลูกค้า
+    var tick=function(){ try{ markStale(); qaButton(); shareUI(); }catch(e){} };
+    ['list','proj','app'].forEach(function(id){
+      var n=document.getElementById(id);
+      if(n) new MutationObserver(function(){ setTimeout(tick,60); }).observe(n,{childList:true,subtree:true});
+    });
+    setInterval(tick,1500);
+    setTimeout(tick,800);
+  }
+  if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
+})();
+
 </script>
 </body>
 </html>
