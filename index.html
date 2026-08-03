@@ -2241,11 +2241,27 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
       var id=(ap&&ap.id)||pid;
       if(!id){ $('#mafcShareMsg').textContent='เปิดโครงการที่ต้องการก่อน'; return; }
       var u=location.origin+location.pathname+'?present='+encodeURIComponent(id)+($('#mafcShowPrice').checked?'&price=1':'');
-      if(navigator.clipboard&&navigator.clipboard.writeText){
-        navigator.clipboard.writeText(u).then(function(){ $('#mafcShareMsg').textContent='✓ คัดลอกลิงก์แล้ว — ส่งให้ลูกค้าได้เลย'; },
-          function(){ prompt('คัดลอกลิงก์นี้:',u); });
-      } else prompt('คัดลอกลิงก์นี้:',u);
+      showLink(u);
+      // คัดลอกอัตโนมัติ (ถ้าทำไม่ได้ก็ไม่เป็นไร — ลิงก์โชว์ให้ก๊อปเองอยู่แล้ว ไม่ใช้ prompt() ที่ทำให้หน้าค้าง)
+      try{
+        if(document.hasFocus&&document.hasFocus()&&navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(u).then(function(){
+            $('#mafcShareMsg').textContent='✓ คัดลอกลิงก์แล้ว — ส่งให้ลูกค้าได้เลย';
+          },function(){ $('#mafcShareMsg').textContent='กดที่ช่องลิงก์แล้วคัดลอกได้เลย'; });
+        } else { $('#mafcShareMsg').textContent='กดที่ช่องลิงก์แล้วคัดลอกได้เลย'; }
+      }catch(e){ $('#mafcShareMsg').textContent='กดที่ช่องลิงก์แล้วคัดลอกได้เลย'; }
     };
+    function showLink(u){
+      var box=$('#mafcShareUrl');
+      if(!box){
+        box=document.createElement('input'); box.id='mafcShareUrl'; box.readOnly=true;
+        box.style.cssText='flex:1;min-width:220px;font-family:var(--mono,monospace);font-size:11.5px;'+
+          'border:1px solid var(--line,#E4E1D9);border-radius:10px;padding:8px 10px;background:#fff;color:#16181D';
+        box.onclick=function(){ this.select(); };
+        var bar=$('#mafcShareBar'); bar.appendChild(box);
+      }
+      box.value=u; try{ box.select(); }catch(e){}
+    }
   }
 
   /* ดูตัวอย่างหน้าลูกค้าในเครื่อง (ไม่ต้องส่งลิงก์) */
@@ -2364,9 +2380,9 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
     if(PRESENT_ID){ bootPresent(); return; }        // โหมดลูกค้า
     var tick=function(){ if(_busy1) return; _busy1=true;
       try{ markStale(); qaButton(); shareUI(); }catch(e){} finally{ _busy1=false; } };
-    var _n1=document.getElementById('list');
-    if(_n1) new MutationObserver(function(){ if(!_busy1) setTimeout(tick,180); }).observe(_n1,{childList:true});
-    setInterval(function(){ if(!document.hidden) tick(); },4000);
+    ['list','proj'].forEach(function(id){ var n=document.getElementById(id);
+      if(n) new MutationObserver(function(){ if(!_busy1) setTimeout(tick,200); }).observe(n,{childList:true}); });
+    setInterval(tick,3000);
     setTimeout(tick,800);
   }
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
@@ -2737,9 +2753,10 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   var _busy3=false;
   function tick(){ if(_busy3) return; _busy3=true;
     try{ markRows(); histBtn(); roomsUI(); }catch(e){} finally{ _busy3=false; } }
-  var _n3=document.getElementById('list');
-  if(_n3) new MutationObserver(function(){ if(!_busy3) setTimeout(tick,200); }).observe(_n3,{childList:true});
-  setInterval(function(){ if(!document.hidden) tick(); },4000); setTimeout(tick,900);
+  ['list','proj'].forEach(function(id){ var n=document.getElementById(id);
+    if(n) new MutationObserver(function(){ if(!_busy3) setTimeout(tick,220); }).observe(n,{childList:true}); });
+  setInterval(tick,3000); setTimeout(tick,900);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(tick,120); });
 })();
 
 </script>
