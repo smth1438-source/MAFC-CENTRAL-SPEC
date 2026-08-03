@@ -2357,6 +2357,113 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
 })();
 
+/* ==========================================================================
+   MA.FC V4 — ADD-ON เฟส 2 : รหัสวัสดุอัตโนมัติ (auto-ID)
+   • เปิดฟอร์ม "เพิ่มรายการ" → ระบบเติมรหัสถัดไปให้อัตโนมัติ (ล็อกไว้ กันพิมพ์มั่ว)
+   • รหัสใหม่ใช้ "รูปแบบเดียวกับกลุ่มนั้น" (ไม่ทำให้ของเดิมเพี้ยน)
+   • เปลี่ยนกลุ่มย่อย → รหัสเปลี่ยนตามทันที
+   • กด "แก้เอง" ได้ ถ้าจำเป็น + เตือนทันทีถ้ารหัสซ้ำ
+   ========================================================================== */
+(function(){ "use strict";
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+
+  function curItems(){
+    try{ return (ROWS[state.cat]||[]); }catch(e){ return []; }
+  }
+  /* หา prefix กลุ่มจากที่เลือกในฟอร์ม (กลุ่มย่อย) หรือจากรหัสที่มี */
+  function groupPrefix(){
+    var sel=$('#fSection');
+    if(sel && sel.value && sel.value!=='__new__'){
+      try{
+        var secs=(SECS[state.cat]||[]);
+        for(var i=0;i<secs.length;i++) if(secs[i].name===sel.value && secs[i].code) return String(secs[i].code).trim();
+      }catch(e){}
+    }
+    var ng=$('#newGrpCode');
+    if(ng && ng.value.trim()) return ng.value.trim();
+    return null;
+  }
+  /* คำนวณรหัสถัดไป โดยคงรูปแบบเดิมของกลุ่ม (padding เท่าเดิม) */
+  function nextCode(prefix){
+    if(!prefix) return '';
+    var re=new RegExp('^'+prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'-(\\d+)$','i');
+    var mx=0, pad=1, found=false;
+    curItems().forEach(function(it){
+      var m=String(it.code||'').trim().match(re);
+      if(m){ found=true; var n=+m[1]; if(n>mx)mx=n; if(m[1].length>pad)pad=m[1].length; }
+    });
+    if(!found) pad=1;
+    var nn=String(mx+1);
+    while(nn.length<pad) nn='0'+nn;
+    return prefix+'-'+nn;
+  }
+  function codeExists(code){
+    code=String(code||'').trim().toLowerCase(); if(!code) return false;
+    return curItems().some(function(it){ return String(it.code||'').trim().toLowerCase()===code; });
+  }
+
+  function styleOnce(){
+    if($('#mafcAidCss')) return;
+    var s=document.createElement('style'); s.id='mafcAidCss';
+    s.textContent='.mafc-aid{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}'+
+      '.mafc-aid .bg{font-size:10.5px;font-weight:700;background:#0E2A4F;color:#7DD3FC;border:1px solid #1D4ED8;'+
+      'border-radius:5px;padding:2px 8px;white-space:nowrap}'+
+      '.mafc-aid .ed{font-size:11px;background:none;border:1px solid var(--line,#243654);color:var(--gray,#8FA3C0);'+
+      'border-radius:6px;padding:2px 9px;cursor:pointer}'+
+      '.mafc-aid .wn{font-size:11px;color:#FCA5A5;font-weight:600}'+
+      '.mafc-lock{opacity:.85;cursor:not-allowed}';
+    document.head.appendChild(s);
+  }
+
+  function enhance(){
+    var ov=$('#modalHost .ov'); if(!ov) return;
+    var inp=$('[data-k="code"]',ov); if(!inp) return;
+    if(inp.dataset.mafcAid) { refresh(inp); return; }
+    var h3=$('h3',ov); var title=h3?h3.textContent:'';
+    var isNew = title.indexOf('เพิ่มรายการ')>=0 || title.indexOf('คัดลอก')>=0;
+    if(!isNew) return;                      // โหมดแก้ไข: ไม่ยุ่งกับรหัสเดิม
+    styleOnce();
+    inp.dataset.mafcAid='1';
+
+    var bar=document.createElement('div'); bar.className='mafc-aid';
+    bar.innerHTML='<span class="bg" id="mafcAidBg">รหัสอัตโนมัติ</span>'+
+      '<button type="button" class="ed" id="mafcAidEd">✎ แก้เอง</button>'+
+      '<span class="wn" id="mafcAidWn"></span>';
+    inp.parentNode.insertBefore(bar, inp.nextSibling);
+
+    $('#mafcAidEd',bar).onclick=function(){
+      if(inp.readOnly){ inp.readOnly=false; inp.classList.remove('mafc-lock');
+        $('#mafcAidBg',bar).textContent='กรอกเอง'; this.textContent='↺ ใช้อัตโนมัติ'; inp.focus(); }
+      else { inp.readOnly=true; inp.classList.add('mafc-lock');
+        $('#mafcAidBg',bar).textContent='รหัสอัตโนมัติ'; this.textContent='✎ แก้เอง'; refresh(inp,true); }
+    };
+    inp.addEventListener('input',function(){ warn(inp); });
+    var sec=$('#fSection'); if(sec) sec.addEventListener('change',function(){ setTimeout(function(){refresh(inp,true)},60); });
+    var ng=$('#newGrpCode'); if(ng) ng.addEventListener('input',function(){ refresh(inp,true); });
+    refresh(inp,true);
+  }
+  function warn(inp){
+    var w=$('#mafcAidWn'); if(!w) return;
+    var v=inp.value.trim();
+    w.textContent = (v && codeExists(v)) ? '⚠ รหัสนี้มีอยู่แล้วในหมวดนี้' : '';
+  }
+  function refresh(inp,force){
+    if(!inp || (inp.readOnly===false && !force)) { warn(inp); return; }
+    var p=groupPrefix();
+    var bg=$('#mafcAidBg');
+    if(!p){ if(bg)bg.textContent='เลือกกลุ่มย่อยก่อน'; inp.readOnly=false; inp.classList.remove('mafc-lock'); warn(inp); return; }
+    var c=nextCode(p);
+    if(c){ inp.value=c; inp.readOnly=true; inp.classList.add('mafc-lock');
+      if(bg) bg.textContent='รหัสอัตโนมัติ · ถัดไปในกลุ่ม '+p; }
+    warn(inp);
+  }
+
+  var host=document.getElementById('modalHost');
+  if(host) new MutationObserver(function(){ setTimeout(enhance,80); }).observe(host,{childList:true,subtree:true});
+  setInterval(function(){ try{ enhance(); }catch(e){} },1200);
+})();
+
 </script>
 </body>
 </html>
