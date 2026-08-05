@@ -2809,6 +2809,118 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   setInterval(fix,2000); setTimeout(fix,800);
 })();
 
+/* ===== AC PICKER + ก๊อปข้ามหมวด ===== */
+(function(){
+  function q(s,r){ return (r||document).querySelector(s); }
+  function E(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function acRows(){ try{ var a=acCat(); return a?(ROWS[a.id]||[]):[]; }catch(e){ return []; } }
+  function cats(){ try{ return CATS||[]; }catch(e){ return []; } }
+
+  /* ---------- 1) เลือกอุปกรณ์เสริมจากคลัง AC เท่านั้น ---------- */
+  if(typeof window.openAddAcc==='function' && !window.openAddAcc.__mafc){
+    var _oa=window.openAddAcc;
+    window.openAddAcc=function(r){ var o=_oa.apply(this,arguments); setTimeout(function(){ acPicker(r); },70); return o; };
+    window.openAddAcc.__mafc=1;
+  }
+  function acPicker(r){
+    var h=document.getElementById('modalHost'); if(!h) return;
+    if(q('#mafcAcPick',h)) return;
+    var form=q('.form',h); if(!form) return;
+    var rows=acRows(); if(!rows.length) return;
+    var bySec={};
+    rows.forEach(function(x){ var s=String(x.section||'').trim()||'อื่น ๆ'; (bySec[s]=bySec[s]||[]).push(x); });
+    var opts='<option value="">— พิมพ์เองใหม่ —</option>';
+    Object.keys(bySec).sort().forEach(function(s){
+      opts+='<optgroup label="'+E(s)+'">';
+      bySec[s].forEach(function(x){
+        opts+='<option value="'+E(x.code)+'">'+E(x.code)+' — '+E(String(x.desc||'').slice(0,70))+
+              (x.price?('  ['+E(x.price)+' บ./'+E(x.unit||'')+']'):'')+'</option>';
+      });
+      opts+='</optgroup>';
+    });
+    var box=document.createElement('div'); box.id='mafcAcPick'; box.className='lb';
+    box.innerHTML='<div class="lbh">📦 เลือกจากคลัง AC ('+rows.length+' รายการ) — ใช้ข้อมูลจากหมวด AC เท่านั้น</div>'+
+      '<select id="mafcAcSel" style="width:100%;border:1px solid var(--line,#E4E1D9);border-radius:10px;'+
+      'padding:10px 12px;font-family:inherit;font-size:14px;background:#fff">'+opts+'</select>'+
+      '<div class="lbmsg" id="mafcAcMsg">เลือกแล้วระบบเติมรายละเอียดให้ · รหัสใหม่ออกอัตโนมัติ</div>';
+    form.parentNode.insertBefore(box, form);
+    q('#mafcAcSel',h).onchange=function(){
+      var code=this.value, m=null;
+      acRows().forEach(function(x){ if(String(x.code)===code) m=x; });
+      var msg=q('#mafcAcMsg',h);
+      if(!m){ msg.className='lbmsg'; msg.textContent='พิมพ์เองใหม่'; return; }
+      ['desc','size','price','unit','brand','link'].forEach(function(k){
+        var el=q('[data-a="'+k+'"]',h); if(el) el.value=String(m[k]||'');
+      });
+      var nc=''; try{ if(r&&r.code) nc=nextAcc(r.code); }catch(e){}
+      msg.className='lbmsg ok';
+      msg.textContent='✓ ดึงจาก '+m.code+' แล้ว'+(nc?(' — รหัสใหม่: '+nc):'');
+    };
+  }
+
+  /* ---------- 2) ก๊อปรายการไปหมวดอื่น (ไม่ลบของเดิม) ---------- */
+  if(typeof window.openDetail==='function' && !window.openDetail.__mafc){
+    var _od=window.openDetail;
+    window.openDetail=function(r){ var o=_od.apply(this,arguments); setTimeout(function(){ moveBtn(r); },70); return o; };
+    window.openDetail.__mafc=1;
+  }
+  function moveBtn(r){
+    var h=document.getElementById('modalHost'); if(!h||!r) return;
+    if(q('#mafcMove',h)) return;
+    var anchor=q('#mCopy',h)||q('#mEdit',h)||q('#mAcc',h); if(!anchor) return;
+    var b=document.createElement('button'); b.type='button'; b.id='mafcMove'; b.className='btn ghost';
+    b.style.cssText='padding:6px 12px'; b.textContent='📄 ก๊อปไปหมวดอื่น';
+    b.onclick=function(){ moveDlg(r); };
+    anchor.parentNode.insertBefore(b, anchor.nextSibling);
+  }
+  function moveDlg(r){
+    var cur=''; try{ cur=state.cat||''; }catch(e){}
+    var byD={}; cats().forEach(function(c){ (byD[c.disc]=byD[c.disc]||[]).push(c); });
+    var opts='';
+    Object.keys(byD).forEach(function(d){
+      opts+='<optgroup label="'+E(d)+'">';
+      byD[d].forEach(function(c){ if(c.id!==cur) opts+='<option value="'+E(c.id)+'">'+E(d+' / '+c.name)+' ('+(c.count||0)+')</option>'; });
+      opts+='</optgroup>';
+    });
+    var ro=(typeof MODE!=='undefined'&&MODE!=='apps');
+    modal('<h3>ก๊อปรายการไปหมวดอื่น</h3>'+
+      '<div class="lb"><div class="lbh">ต้นทาง: '+E(r.code)+' — '+E(String(r.desc||'').slice(0,60))+'</div>'+
+      '<div class="lbmsg">ของเดิมไม่ถูกลบ ระบบจะ<b>เพิ่มรายการใหม่</b>ในหมวดปลายทาง</div></div>'+
+      '<div class="form">'+
+      '<div class="f full"><label>หมวดปลายทาง *</label><select data-m="cat">'+opts+'</select></div>'+
+      '<div class="f full"><label>รหัสใหม่ *</label><input data-m="code" class="mono" value="'+E(r.code)+'"></div>'+
+      '</div>'+
+      (ro?'<div class="lbmsg err" style="margin-top:10px">⚠ ตอนนี้เป็นโหมดอ่านอย่างเดียว — กด ⚙ ต่อ Apps Script ก่อนจึงจะก๊อปได้</div>':'')+
+      '<div id="mafcMvMsg" class="lbmsg"></div>'+
+      '<div class="mrow"><button class="btn ghost mclose">ยกเลิก</button>'+
+      '<button class="btn" id="mafcMvGo"'+(ro?' disabled':'')+'>ก๊อป</button></div>');
+    var h=document.getElementById('modalHost');
+    q('#mafcMvGo',h).onclick=async function(){
+      var cid=q('[data-m="cat"]',h).value, code=q('[data-m="code"]',h).value.trim();
+      var msg=q('#mafcMvMsg',h);
+      var t=null; cats().forEach(function(c){ if(c.id===cid) t=c; });
+      if(!t){ msg.className='lbmsg err'; msg.textContent='เลือกหมวดปลายทาง'; return; }
+      if(!code){ msg.className='lbmsg err'; msg.textContent='ใส่รหัสใหม่'; return; }
+      var dup=(ROWS[t.id]||[]).some(function(x){ return String(x.code||'').trim().toLowerCase()===code.toLowerCase(); });
+      if(dup){ msg.className='lbmsg err'; msg.textContent='รหัส '+code+' มีอยู่แล้วใน '+t.name+' — เปลี่ยนรหัสก่อน'; return; }
+      var p={action:'add',cat:t.sheet,disc:t.disc,code:code};
+      ['desc','size','grade','brand','link','bim','price','contact','img','unit','labor','priceDate','std','status','equiv']
+        .forEach(function(k){ if(r[k]) p[k]=r[k]; });
+      var secOK=(SECS[t.id]||[]).some(function(s){ return s.name===r.section; });
+      if(secOK) p.section=r.section;
+      var b=this; b.disabled=true; b.textContent='…';
+      msg.className='lbmsg load'; msg.textContent='กำลังก๊อป…';
+      try{
+        await apiWrite(p);
+        toast('ก๊อปไป '+t.name+' แล้ว — ของเดิมยังอยู่');
+        closeModal(); await loadData(true);
+        try{ renderTabs();renderFilters();renderList();renderDH(); }catch(e){}
+      }catch(e){ b.disabled=false; b.textContent='ก๊อป'; msg.className='lbmsg err'; msg.textContent=e.message||'ก๊อปไม่สำเร็จ'; }
+    };
+  }
+})();
+
 </script>
 </body>
 </html>
