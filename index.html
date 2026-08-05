@@ -3067,14 +3067,7 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
           }
           sp.title=sp.textContent;
         }
-        /* 3) ป้ายเตือน/MasterFormat → ย้ายมาต่อท้ายชื่อในบรรทัดเดียวกัน */
-        var nm=wrap.querySelector('.mafc-nm')||td.querySelector('.mafc-nm');
-        var tags=td.querySelectorAll(':scope > .mafc-fl, :scope > .mafc-mf');
-        for(var j=0;j<tags.length;j++){
-          var f=tags[j];
-          if(f.classList.contains('mafc-fl')&&!f.title) f.title=(f.textContent||'').replace(/^⚠\s*/,'').trim();
-          if(nm) nm.appendChild(f);
-        }
+        /* (ป้ายย้ายทีหลังใน moveTags เพราะ add-on อื่นเติมมาหลังจากนี้) */
         /* 4) หน่วยเงินตัวเล็ก */
         var pd=tr.children[2];
         if(pd && !pd.dataset.v403 && /฿/.test(pd.textContent)){
@@ -3092,7 +3085,19 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
       if(/·\s*0\s*รายการ/.test(c.textContent||'')) c.classList.add('mafc-empty');
     }
   }
-  function tick(){ if(_b) return; _b=true; try{ rows(); hubDim(); }catch(e){} finally{ _b=false; } }
+  /* ป้ายเตือน/MasterFormat → ต่อท้ายชื่อบรรทัดเดียวกัน (รันทุกรอบ เพราะ add-on อื่นเติมทีหลัง) */
+  function moveTags(){
+    var tags=document.querySelectorAll('#list tr.item > td > .mafc-fl, #list tr.item > td > .mafc-mf');
+    if(!tags.length) return;
+    var n=Math.min(tags.length,400);
+    for(var i=0;i<n;i++){
+      var f=tags[i], td=f.parentElement; if(!td) continue;
+      var nm=td.querySelector('.mafc-nm'); if(!nm) continue;
+      if(f.classList.contains('mafc-fl')&&!f.title) f.title=(f.textContent||'').replace(/^⚠\s*/,'').trim();
+      nm.appendChild(f);
+    }
+  }
+  function tick(){ if(_b) return; _b=true; try{ rows(); moveTags(); hubDim(); }catch(e){} finally{ _b=false; } }
   window.mafcV403=tick;
   ['list','hubGrid'].forEach(function(id){ var n=document.getElementById(id);
     if(n) new MutationObserver(function(){ if(!_b) setTimeout(tick,90); }).observe(n,{childList:true}); });
