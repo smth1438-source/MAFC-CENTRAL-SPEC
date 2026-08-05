@@ -2921,6 +2921,44 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   }
 })();
 
+/* ===== กันหมวดซ้ำตอนโหมดอ่านอย่างเดียว (gviz คืนแท็บแรกเมื่อชื่อแท็บไม่ตรง) ===== */
+(function(){
+  function sig(id){
+    var r=(ROWS[id]||[]); if(!r.length) return '';
+    return r.length+'|'+String(r[0].code||'')+'|'+String(r[0].desc||'').slice(0,30)+
+           '|'+String(r[r.length-1].code||'');
+  }
+  function dedupe(){
+    try{
+      if(typeof MODE!=='undefined' && MODE==='apps') return 0;   // ต่อ Apps Script = ข้อมูลถูกอยู่แล้ว
+      if(typeof CATS==='undefined'||!CATS.length) return 0;
+      var seen={}, drop=[];
+      CATS.forEach(function(c){
+        var s=sig(c.id); if(!s) return;                           // แท็บว่าง ปล่อยไว้
+        var k=c.disc+'::'+s;
+        if(seen[k]) drop.push(c.id); else seen[k]=c.id;
+      });
+      if(!drop.length) return 0;
+      for(var i=CATS.length-1;i>=0;i--){ if(drop.indexOf(CATS[i].id)>=0) CATS.splice(i,1); }
+      drop.forEach(function(id){ try{ delete ROWS[id]; delete SECS[id]; }catch(e){} });
+      try{ console.info('[MA.FC] ซ่อนหมวดซ้ำ '+drop.length+' หมวด:',drop.join(', ')); }catch(e){}
+      return drop.length;
+    }catch(e){ return 0; }
+  }
+  window.mafcDedupe=dedupe;
+  var _ld=window.loadData;
+  if(typeof _ld==='function' && !_ld.__mafcDd){
+    window.loadData=async function(){
+      var o=await _ld.apply(this,arguments);
+      var n=dedupe();
+      if(n){ try{ renderTabs();renderFilters();renderList();renderDH(); }catch(e){} }
+      return o;
+    };
+    window.loadData.__mafcDd=1;
+  }
+  setTimeout(function(){ var n=dedupe(); if(n){ try{ renderTabs();renderFilters();renderList();renderDH(); }catch(e){} } },2500);
+})();
+
 </script>
 </body>
 </html>
