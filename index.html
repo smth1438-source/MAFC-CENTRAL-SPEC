@@ -802,6 +802,13 @@ body.mafc-present .rowact,body.mafc-present td.price,body.mafc-present th:nth-ch
   #list tr.grp td{padding:9px 10px!important;}
 }
 
+/* ---- V4.03 fix: ลิงก์ไม่ตัดบรรทัด + ป้ายอยู่ในบรรทัดชื่อ ---- */
+#list td:nth-child(6){white-space:nowrap!important;}
+#list .ext{white-space:nowrap!important;height:auto!important;line-height:1.4!important;}
+#list td:nth-child(2){white-space:nowrap;}
+#list td:nth-child(2) > div{flex-wrap:nowrap!important;}
+.mafc-nm .mafc-mf{margin-left:7px;vertical-align:middle;}
+
 </style>
 </head>
 <body>
@@ -3060,11 +3067,13 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
           }
           sp.title=sp.textContent;
         }
-        /* 3) ป้ายเตือน → จุดสี (เก็บข้อความไว้ใน title) */
-        var fls=wrap.querySelectorAll('.mafc-fl:not([data-dot])');
-        for(var j=0;j<fls.length;j++){
-          var f=fls[j]; f.setAttribute('data-dot','1');
-          if(!f.title) f.title=(f.textContent||'').replace(/^⚠\s*/,'').trim();
+        /* 3) ป้ายเตือน/MasterFormat → ย้ายมาต่อท้ายชื่อในบรรทัดเดียวกัน */
+        var nm=wrap.querySelector('.mafc-nm')||td.querySelector('.mafc-nm');
+        var tags=td.querySelectorAll(':scope > .mafc-fl, :scope > .mafc-mf');
+        for(var j=0;j<tags.length;j++){
+          var f=tags[j];
+          if(f.classList.contains('mafc-fl')&&!f.title) f.title=(f.textContent||'').replace(/^⚠\s*/,'').trim();
+          if(nm) nm.appendChild(f);
         }
         /* 4) หน่วยเงินตัวเล็ก */
         var pd=tr.children[2];
