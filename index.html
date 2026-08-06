@@ -788,18 +788,46 @@ html.mafc-light .imgstat{background:#faf9f6;color:#4b5563;}
 .pcard .cmeta{font-size:10.5px!important;}
 body.mafc-present .rowact,body.mafc-present td.price,body.mafc-present th:nth-child(3){display:none!important;}
 
-/* ---------- มือถือ: ตารางไม่ต้องเลื่อนแนวนอน ---------- */
+/* ---------- มือถือ (ปรับใหม่ V4.03) ---------- */
 @media(max-width:640px){
-  #list table{min-width:0!important;}
-  #list thead{display:none;}
-  #list tr.item{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--hair);}
+  /* แถบบน: ไม่ตัดคำ ไม่กลายเป็นวงกลม */
+  .apptop .row{gap:6px!important;padding:6px 0!important;}
+  .apptop .btn{white-space:nowrap!important;font-size:10.5px!important;padding:6px 10px!important;min-height:30px!important;}
+  .apptop .srcchip,#mafcPray{white-space:nowrap!important;font-size:9.5px!important;padding:3px 9px!important;
+    width:auto!important;height:auto!important;flex:0 0 auto!important;}
+  .apptop .brand small{display:none;}
+  /* หัวหมวด + เครื่องมือ */
+  .dh{padding:10px 12px!important;}
+  .toolbar{gap:6px!important;}
+  .toolbar .search{flex:1 1 100%!important;order:-1;}
+  .toolbar select{flex:1 1 calc(50% - 3px)!important;min-width:0!important;}
+  /* หมวดใหญ่: 2 ช่องต่อแถว ไม่สูงเกิน */
+  .grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
+  #hubGrid{display:grid!important;grid-template-columns:repeat(2,1fr)!important;overflow:visible!important;
+    -webkit-mask-image:none!important;mask-image:none!important;}
+  #hubGrid .card{flex:none!important;}
+  .card{min-height:0!important;padding:13px!important;aspect-ratio:auto!important;}
+  .card .nm{font-size:14px!important;margin-top:8px!important;}
+  .card .mt{font-size:10px!important;}
+  #hubPrev,#hubNext{display:none!important;}
+  /* ตาราง → บล็อก อ่านง่าย ไม่ล้นจอ */
+  #list table{min-width:0!important;width:100%!important;}
+  #list thead{display:none!important;}
+  #list tr.grp td{padding:8px 10px!important;font-size:12px!important;}
+  #list tr.item{display:flex!important;flex-wrap:wrap;align-items:center;gap:6px;
+    padding:9px 10px!important;border-bottom:1px solid var(--hair);}
   #list tr.item td{display:block;border:0!important;padding:0!important;}
-  #list tr.item td.code{flex:0 0 auto;font-size:11px;}
-  #list tr.item td:nth-child(2){flex:1 1 100%;order:3;}
-  #list tr.item td.price{margin-left:auto;font-size:15px!important;}
+  #list tr.item td.code{flex:0 0 auto;font-size:11px!important;}
+  #list tr.item td.price{flex:0 0 auto;margin-left:auto;font-size:15px!important;}
+  #list tr.item td:nth-child(2){flex:1 1 100%;order:5;min-width:0;white-space:normal!important;}
   #list tr.item td:nth-child(4),#list tr.item td:nth-child(5){display:none!important;}
-  #list tr.item td:nth-child(6),#list tr.item td:nth-child(7){order:4;}
-  #list tr.grp td{padding:9px 10px!important;}
+  #list tr.item td:nth-child(6){order:6;flex:0 0 auto;}
+  #list tr.item td:nth-child(7){order:7;margin-left:auto;flex:0 0 auto;}
+  /* ชื่อ: 2 บรรทัด ตัดท้าย ไม่ล้นขวา */
+  #list tr.item .mafc-nm{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;
+    -webkit-box-orient:vertical;overflow:hidden;font-size:12px!important;line-height:1.45;}
+  #list tr.item td:nth-child(2) > div{flex-wrap:nowrap!important;gap:8px!important;}
+  #list tr.item td:nth-child(2) > div > div:first-child{width:40px!important;height:40px!important;flex:0 0 40px!important;}
 }
 
 /* ---- V4.03 fix: ลิงก์ไม่ตัดบรรทัด + ป้ายอยู่ในบรรทัดชื่อ ---- */
