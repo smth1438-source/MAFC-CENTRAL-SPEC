@@ -3,7 +3,7 @@
 <script>/* MA.FC auto-connect */
 try{var c=JSON.parse(localStorage.getItem("mafc_cfg")||"{}")||{};
 if(!c.url)c.url="https://script.google.com/macros/s/AKfycbzTigBhUbgeQ4wN1tHhJIVWexVUd8hdFuaqooxcLw_YQN7_vvfZtYZc1ndMvOgbcJ5K/exec";
-if(!c.token)c.token="mafc-spec-2026-Kx7q9Zr3T";
+/* token: ทีมกรอกเองครั้งเดียวที่ปุ่ม ⚙ (เก็บใน localStorage) — ห้ามฝังในไฟล์สาธารณะ */
 localStorage.setItem("mafc_cfg",JSON.stringify(c));}catch(e){}</script>
 <head>
 <meta charset="utf-8"/>
@@ -1122,6 +1122,9 @@ function discThumb(d){ for(const c of catsOfDisc(d)){ for(const it of (ROWS[c.id
 function collectImgs(n){ const out=[],seen={}; for(const k in ROWS){ for(const it of ROWS[k]){ const u=imgSrc(it); if(u&&!seen[u]){seen[u]=1;out.push(u);} } } return out.slice(0,n); }
 function extLink(u,label,cls){ if(!u||!/^https?:/.test(u))return ""; return `<a class="ext ${cls||''}" href="${esc(u)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`; }
 function imgSrc(r){ var v=String((r&&r.img)||"").trim(); if(!v)return ""; if(/^data:image\//.test(v))return v; var gd=v.match(/drive\.google\.com\/(?:file\/d\/|.*?[?&]id=)([\w-]{20,})/); if(gd)return "https://drive.google.com/thumbnail?id="+gd[1]+"&sz=w1000"; if(/^https?:/.test(v))return v; return ""; }
+/* Sanitize a URL for safe use inside a CSS url('...') within a double-quoted style="" attribute.
+   Only http(s)/data:image allowed; percent-encode chars that could break out of the quote/paren/attribute. */
+function cssUrl(u){ u=String(u==null?"":u); if(!/^(?:https?:|data:image\/)/i.test(u))return ""; return u.replace(/["'()\\\s<>]/g,function(c){return "%"+c.charCodeAt(0).toString(16).toUpperCase().padStart(2,"0");}); }
 async function fetchMeta(url){ const api="https://api.microlink.io/?url="+encodeURIComponent(url); const res=await fetch(api); const j=await res.json(); if(j.status!=="success"||!j.data)throw new Error("อ่านลิงก์ไม่สำเร็จ"); return j.data; }
 function buildSpec(meta){ let title=(meta.title||"").trim(); title=title.split(/\s[|\u2013\u2014]\s|\s-\s/)[0].trim(); const sizeM=title.match(/\d+(?:\.\d+)?\s*[xX\u00d7]\s*\d+(?:\.\d+)?/); return {desc:title,size:sizeM?sizeM[0]:"",brand:String(meta.publisher||meta.author||"").trim(),img:(meta.image&&meta.image.url)||(meta.logo&&meta.logo.url)||""}; }
 function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
@@ -1141,7 +1144,7 @@ function heroTiles(){
   const imgs=collectImgs(40); const H=[150,200,175,235,160,210,185,225,165];
   let html=""; const N=imgs.length?24:16;
   for(let i=0;i<N;i++){ const u=imgs.length?imgs[i%imgs.length]:""; const h=H[i%H.length];
-    html+=`<div class="tile" style="height:${h}px;${u?`background-image:url('${String(u).replace(/'/g,"")}')`:"background:linear-gradient(135deg,#dfe6f3,#c3d3ee)"}"></div>`; }
+    html+=`<div class="tile" style="height:${h}px;${u?`background-image:url('${cssUrl(u)}')`:"background:linear-gradient(135deg,#dfe6f3,#c3d3ee)"}"></div>`; }
   w.innerHTML=html;
 }
 function showHero(){ $("#hub").classList.add("hidden"); $("#app").classList.add("hidden"); const _hb=$(".heroBig"); if(_hb&&!_hb.src){ const _l=document.querySelector(".hnav .brand img"); if(_l)_hb.src=_l.src; } const h=$("#hero"); h.classList.remove("hidden"); h.scrollTop=0; heroReveal(); const sub=$("#heroSub"); try{const t=localStorage.getItem("mafc_hero_sub"); if(t&&sub)sub.textContent=t;}catch(_){} heroTiles(); setTimeout(heroTiles,1500); }
@@ -1162,7 +1165,7 @@ function startHubAuto(){ const g=$("#hubGrid"); if(!g)return; if(_hubRAF)cancelA
   if(pv){ pv.innerHTML=AR.left; pv.onclick=()=>jump(-1); }
   if(nx){ nx.innerHTML=AR.right; nx.onclick=()=>jump(1); }
   g.onmouseenter=()=>_hubHover=true; g.onmouseleave=()=>_hubHover=false;
-  g.addEventListener("touchstart",()=>_hubHover=true,{passive:true}); g.addEventListener("touchend",()=>{setTimeout(()=>_hubHover=false,2500);},{passive:true});
+  if(!g._touchBound){ g._touchBound=1; g.addEventListener("touchstart",()=>_hubHover=true,{passive:true}); g.addEventListener("touchend",()=>{setTimeout(()=>_hubHover=false,2500);},{passive:true}); }
   _hubLast=performance.now();
   const step=(t)=>{ const dt=Math.min(t-_hubLast,60); _hubLast=t;
     if(!_hubHover && g.scrollWidth>g.clientWidth+4){ g.scrollLeft += dt*0.045; if(g.scrollLeft >= g.scrollWidth-g.clientWidth-1) g.scrollLeft=0; }
@@ -1224,7 +1227,7 @@ function renderFilters(){
 function filtered(){
   let rows=curRows();
   const q=state.q.trim().toLowerCase();
-  if(q)rows=rows.filter(r=>(r.code+" "+r.desc+" "+r.brand+" "+r.size).toLowerCase().includes(q));
+  if(q)rows=rows.filter(r=>((r.code||"")+" "+(r.desc||"")+" "+(r.brand||"")+" "+(r.size||"")).toLowerCase().includes(q));
   if(state.brand)rows=rows.filter(r=>r.brand===state.brand);
   if(state.grade)rows=rows.filter(r=>r.grade===state.grade);
   return rows;
@@ -1245,7 +1248,7 @@ function tableHtml(rows){
     rows.filter(r=>r.section===sec).forEach(r=>{
       const chk=state.cmp.includes(r.code)?"checked":"";
       body+=`<tr class="item" data-code="${esc(r.code)}">
-        <td class="code">${imgSrc(r)?`<span class="tdthumb" style="background-image:url('${esc(imgSrc(r))}')"></span>`:""}${esc(r.code)}</td>
+        <td class="code">${imgSrc(r)?`<span class="tdthumb" style="background-image:url('${cssUrl(imgSrc(r))}')"></span>`:""}${esc(r.code)}</td>
         <td><div style="display:flex;gap:12px;align-items:flex-start"><div ${imgSrc(r)?`data-thumb="${esc(imgSrc(r))}"`:""} style="flex:0 0 auto;width:52px;height:52px;border-radius:11px;background:#F4F2EC${imgSrc(r)?`;background-image:url('${esc(imgSrc(r))}');background-size:cover;background-position:center;cursor:zoom-in`:""};border:1px solid #ECEAE3;display:flex;align-items:center;justify-content:center;color:#C4C0B6;font-size:18px">${imgSrc(r)?"":ICN("eye").replace('width="17" height="17"','width="20" height="20"')}</div><div>${esc(r.desc)||"<span style='color:#aaa'>—</span>"}${r.size?`<div style="color:var(--gray);font-size:12px">${esc(r.size)}</div>`:""}${r.grade?` <span class="pill" style="background:#eef;color:#446;margin-top:4px">เกรด ${esc(r.grade)}</span>`:""}</div></div></td>
         <td class="price">${priceTxt(r)}${isOldPrice(r)?` <span title="ราคาเก่ากว่า 90 วัน" style="color:#e67e22">⚠</span>`:""}</td>
         <td>${esc(r.brand)||"—"}</td> <td>${r.grade?`<span class="gradecell">${esc(r.grade)}</span>`:`<span style='color:#888'>—</span>`}</td>
@@ -1266,7 +1269,7 @@ function cardsHtml(rows){
   const secs=[...new Set(rows.map(r=>r.section))];
   const card=r=>{ const u=imgSrc(r); return `
     <div class="pcard" data-code="${esc(r.code)}">
-      <div class="thumb" ${u?`data-thumb="${esc(u)}"`:""} style="position:relative${u?`;background-image:url('${esc(u)}');cursor:zoom-in`:""}">${r.grade?`<span class="pill gpill">เกรด ${esc(r.grade)}</span>`:""}</div>
+      <div class="thumb" ${u?`data-thumb="${esc(u)}"`:""} style="position:relative${u?`;background-image:url('${cssUrl(u)}');cursor:zoom-in`:""}">${r.grade?`<span class="pill gpill">เกรด ${esc(r.grade)}</span>`:""}</div>
       <div class="body">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
           <span class="code mono" style="font-weight:800;color:var(--deep);font-size:13px">${esc(r.code)}</span>
@@ -1276,7 +1279,7 @@ function cardsHtml(rows){
         <div class="cmeta">${esc(r.brand)||""}${r.size?` · ${esc(r.size)}`:""}</div>
         <div class="clinks">${extLink(r.link,"สินค้า")}${extLink(r.bim,"BIM","bim")}</div>
         <div class="rowact">
-          <span class="ic act-detail">👁</span><span class="ic act-edit">✎</span><span class="ic act-copy">⧉</span><span class="ic act-proj">🛒</span><span class="ic act-del">🗑</span>
+          <span class="ic act-detail" role="button" aria-label="ดูรายละเอียด" title="ดูรายละเอียด">👁</span><span class="ic act-edit" role="button" aria-label="แก้ไข" title="แก้ไข">✎</span><span class="ic act-copy" role="button" aria-label="คัดลอก" title="คัดลอก">⧉</span><span class="ic act-proj" role="button" aria-label="ใส่โครงการ" title="ใส่โครงการ">🛒</span><span class="ic act-del" role="button" aria-label="ลบ" title="ลบ">🗑</span>
           <label class="ic" style="cursor:pointer"><input type="checkbox" class="act-cmp" ${state.cmp.includes(r.code)?"checked":""} style="display:none">${state.cmp.includes(r.code)?"✓":"⇄"}</label>
         </div>
       </div>
@@ -1292,14 +1295,13 @@ let _zp=null;
 function _ensureZP(){ if(!_zp){ _zp=document.createElement("div"); _zp.id="zoomPrev"; document.body.appendChild(_zp); } return _zp; }
 function _bindThumbZoom(){
   $$("#list [data-thumb]").forEach(el=>{
-    el.addEventListener("mouseenter",()=>{ const z=_ensureZP(); const src=el.dataset.thumb; z.style.backgroundImage="url('"+src+"')"; z.classList.add("on"); const im=new Image(); im.onload=()=>{ const MAX=340; let w=im.naturalWidth||MAX,ht=im.naturalHeight||MAX; const s=Math.min(MAX/w,MAX/ht,1.2); z.style.width=Math.round(w*s)+"px"; z.style.height=Math.round(ht*s)+"px"; }; im.src=src; });
+    el.addEventListener("mouseenter",()=>{ const z=_ensureZP(); const src=el.dataset.thumb; z.style.backgroundImage="url('"+cssUrl(src)+"')"; z.classList.add("on"); const im=new Image(); im.onload=()=>{ const MAX=340; let w=im.naturalWidth||MAX,ht=im.naturalHeight||MAX; const s=Math.min(MAX/w,MAX/ht,1.2); z.style.width=Math.round(w*s)+"px"; z.style.height=Math.round(ht*s)+"px"; }; im.src=src; });
     el.addEventListener("mousemove",e=>{ if(!_zp)return; const pad=18,w=_zp.offsetWidth||260,ht=_zp.offsetHeight||260,vw=innerWidth,vh=innerHeight; let x=e.clientX+pad, y=e.clientY+pad; if(x+w>vw)x=e.clientX-w-pad; if(y+ht>vh)y=vh-ht-8; if(y<8)y=8; _zp.style.left=x+"px"; _zp.style.top=y+"px"; });
     el.addEventListener("mouseleave",()=>{ if(_zp)_zp.classList.remove("on"); });
   });
 }
 function bindRowActs(){
   _bindThumbZoom();
-  $$(".item,[data-code]").forEach(()=>{});
   $$(".act-detail").forEach(b=>b.onclick=e=>{ const code=e.target.closest("[data-code]").dataset.code; openDetail(findRow(code)); });
   $$(".act-edit").forEach(b=>b.onclick=e=>{ const code=e.target.closest("[data-code]").dataset.code; openEdit(findRow(code)); });
   $$(".act-del").forEach(b=>b.onclick=e=>{ const code=e.target.closest("[data-code]").dataset.code; doDelete(findRow(code)); });
@@ -1312,8 +1314,8 @@ function bindRowActs(){
 /* ---------- DETAIL ---------- */
 function _re(x){ return String(x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
 function acCat(){ return CATS.find(c=>c.sheet==="AC-อุปกรณ์เสริม" || /^AC[-\s]/.test(String(c.sheet||"")) || String(c.code||"").toUpperCase()==="AC"); }
-function accFor(code){ const ac=acCat(); if(!ac||!code)return []; const re=new RegExp("^AC"+_re(code)+"[-\d]","i"); return (ROWS[ac.id]||[]).filter(r=>re.test(String(r.code||"").replace(/\s/g,""))); }
-function nextAcc(code){ const ac=acCat(); let mx=0; if(ac){ const re=new RegExp("^AC"+_re(code)+"-?(\d+)","i"); (ROWS[ac.id]||[]).forEach(r=>{ const m=String(r.code||"").replace(/\s/g,"").match(re); if(m)mx=Math.max(mx,+m[1]); }); } return "AC"+code+"-"+(mx+1); }
+function accFor(code){ const ac=acCat(); if(!ac||!code)return []; const re=new RegExp("^AC"+_re(code)+"[-\\d]","i"); return (ROWS[ac.id]||[]).filter(r=>re.test(String(r.code||"").replace(/\s/g,""))); }
+function nextAcc(code){ const ac=acCat(); let mx=0; if(ac){ const re=new RegExp("^AC"+_re(code)+"-?(\\d+)","i"); (ROWS[ac.id]||[]).forEach(r=>{ const m=String(r.code||"").replace(/\s/g,"").match(re); if(m)mx=Math.max(mx,+m[1]); }); } return "AC"+code+"-"+(mx+1); }
 function openAddAcc(r){
   if(MODE!=="apps"){ toast("เพิ่มอุปกรณ์เสริมต้องต่อ Apps Script (⚙) ก่อน"); return; }
   const ac=acCat(); if(!ac){ toast("ไม่พบหมวด AC-อุปกรณ์เสริม ในชีต"); return; }
@@ -1332,7 +1334,7 @@ function openDetail(r){ if(!r)return;
   const dl=rows.filter(x=>x[1]).map(x=>`<dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd>`).join("");
   const links=`${extLink(r.link,"เปิดสินค้า")}${r.bim?extLink(r.bim,"BIM MODEL","bim"):`<button class="ext bim" id="mBimAdd" style="cursor:pointer;border-style:dashed;background:#f5efff">＋ เพิ่มลิงก์ BIM MODEL</button>`}`;
   const _qr=`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=`+encodeURIComponent(r.link||(r.code+" "+r.desc||""));
-  const _im=imgSrc(r); const img=_im?`<div class="thumb" style="height:180px;border-radius:12px;background:#eef3fb url('${esc(_im)}') center/cover;margin-bottom:14px"></div>`:`<div class="thumb" style="height:150px;border-radius:12px;background:#F4F2EC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#9AA0A8;margin-bottom:14px;border:1px dashed #DDDAD2"><div style="font-size:34px">🖼</div><div style="font-size:12px">ยังไม่มีรูป — กด "แก้ไข" เพื่อเพิ่มรูป</div></div>`;
+  const _im=imgSrc(r); const img=_im?`<div class="thumb" style="height:180px;border-radius:12px;background:#eef3fb url('${cssUrl(_im)}') center/cover;margin-bottom:14px"></div>`:`<div class="thumb" style="height:150px;border-radius:12px;background:#F4F2EC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#9AA0A8;margin-bottom:14px;border:1px dashed #DDDAD2"><div style="font-size:34px">🖼</div><div style="font-size:12px">ยังไม่มีรูป — กด "แก้ไข" เพื่อเพิ่มรูป</div></div>`;
   const accs=accFor(r.code);
   const accHtml=`<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center"><b>อุปกรณ์เสริม (${accs.length})</b><button class="btn ghost" id="mAcc" style="padding:6px 12px">+ เพิ่ม AC</button></div>${accs.length?`<table style="margin-top:8px"><tbody>`+accs.map(a=>`<tr><td class="code">${esc(a.code)}</td><td>${esc(a.desc)||"—"}${a.size?` <span style="color:var(--gray);font-size:12px">${esc(a.size)}</span>`:""}</td><td class="price">${a.price?esc(a.price):"—"}</td><td>${extLink(a.link,"ลิงก์")}<span class="ic" data-delacc="${esc(a.code)}" title="ลบ">🗑</span></td></tr>`).join("")+`</tbody></table>`:`<div style="color:var(--gray);font-size:13px;margin-top:6px">— ยังไม่มีอุปกรณ์เสริม —</div>`}</div>`;
   modal(`<h3>${esc(r.code)} — ${esc(r.desc||"")}</h3>${img}<dl class="dl">${dl}</dl><div style="display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-top:14px;flex-wrap:wrap"><div>${links}${isOldPrice(r)?`<div style="color:#e67e22;font-size:12.5px;margin-top:6px">⚠ ราคาเก่ากว่า 90 วัน</div>`:""}<div style="margin-top:8px"><button class="btn ghost" id="mPrice">📈 ประวัติราคา</button></div></div><img src="${_qr}" alt="QR" onerror="this.style.display='none'" style="border:1px solid var(--line);border-radius:10px;width:120px;height:120px"></div>${accHtml}<div class="mrow" style="flex-wrap:wrap;gap:8px"><button class="btn ghost mclose">ปิด</button><button class="btn ghost" id="mCopy">⧉ คัดลอก</button><button class="btn ghost" id="mProj">🛒 ใส่โครงการ</button><button class="btn" id="mEdit">แก้ไข</button></div>`);
@@ -1411,7 +1413,7 @@ function showCompare(){
   const items=state.cmp.map(findRowAll).filter(Boolean);
   const fld=[["รหัส","code"],["รายละเอียด","desc"],["แบรนด์","brand"],["เกรด","grade"],["ราคา","price"],["หน่วย","unit"],["ขนาด","size"],["มาตรฐาน","std"]];
   let t=`<table><thead><tr><th>หัวข้อ</th>${items.map(i=>`<th>${esc(i.code)}</th>`).join("")}</tr></thead><tbody>`;
-  t+=`<tr><td style="color:var(--gray)">รูป</td>${items.map(i=>{const u=imgSrc(i);return `<td>${u?`<div style="width:96px;height:96px;border-radius:12px;background:#eef3fb url('${esc(u)}') center/cover;box-shadow:0 2px 8px rgba(6,43,99,.12)"></div>`:"—"}</td>`;}).join("")}</tr>`;
+  t+=`<tr><td style="color:var(--gray)">รูป</td>${items.map(i=>{const u=imgSrc(i);return `<td>${u?`<div style="width:96px;height:96px;border-radius:12px;background:#eef3fb url('${cssUrl(u)}') center/cover;box-shadow:0 2px 8px rgba(6,43,99,.12)"></div>`:"—"}</td>`;}).join("")}</tr>`;
   fld.forEach(f=>{ t+=`<tr><td style="color:var(--gray)">${f[0]}</td>${items.map(i=>`<td>${esc(i[f[1]])||"—"}</td>`).join("")}</tr>`; });
   t+=`</tbody></table>`;
   modal(`<h3>เปรียบเทียบ ${items.length} รายการ</h3><div style="overflow:auto">${t}</div><div class="mrow"><button class="btn mclose">ปิด</button></div>`);
@@ -1459,7 +1461,7 @@ async function projPull(){ if(MODE!=="apps")return; try{ const r=await jsonp(CFG
 function saveProjects(){ localStorage.setItem("mafc_projects",JSON.stringify(PROJECTS)); const c=$("#projCnt"); if(c)c.textContent=PROJECTS.reduce((a,p)=>a+(p.items?p.items.length:0),0);
   if(MODE==="apps"){ clearTimeout(_pushT); _pushT=setTimeout(()=>{ const p=getProj(viewPid)||getProj(activePid); if(p){ p.updatedAt=Date.now(); projPush(p); } },1200); } }
 function getProj(id){ return PROJECTS.find(p=>p.id===id); }
-function newProject(){ const p={id:"p"+Date.now(),name:"โครงการใหม่ "+(PROJECTS.length+1),cover:{},stage:"",updatedAt:Date.now(),items:[]}; PROJECTS.unshift(p); activePid=viewPid=p.id; saveProjects(); return p; }
+function newProject(){ const p={id:"p"+Date.now()+Math.random().toString(36).slice(2,7),name:"โครงการใหม่ "+(PROJECTS.length+1),cover:{},stage:"",updatedAt:Date.now(),items:[]}; PROJECTS.unshift(p); activePid=viewPid=p.id; saveProjects(); return p; }
 function addToProject(r){ if(!r)return; let p=getProj(activePid); if(!p){ p=PROJECTS[0]||newProject(); activePid=p.id; }
   const cat=CATS.find(c=>c.id===state.cat)||{};
   p.items.push({catId:cat.sheet||"",catCode:cat.code||"",catName:cat.name||"",section:r.section||"",code:r.code,desc:r.desc,size:r.size,brand:r.brand,link:r.link,grade:r.grade,price:r.price,location:"",qty:"",unit:r.unit||"",a1:"",a2:"",roof:"",note:""});
@@ -1503,7 +1505,7 @@ function openBoard(p){
   const logo=((document.querySelector("#projLogo,.hnav .brand img,#hero img")||{}).src)||"";
   const rooms=[...new Set(p.items.map(it=>String(it.location||"").trim()))];
   const grp=r=>p.items.filter(it=>String(it.location||"").trim()===r);
-  const card=it=>{ const u=imgSrc(it); return `<div class="bcard"><div class="bimg" style="${u?`background-image:url('${u}')`:""}"></div><div class="bbody"><div class="brow"><span class="mono bcode">${esc(it.code)}</span><span class="mono bprice">${it.price?esc(it.price)+" ฿":""}</span></div><div class="bdesc">${esc(it.desc||"")}</div><div class="bmeta">${esc(it.brand||"")}${it.size?" · "+esc(it.size):""}</div></div></div>`; };
+  const card=it=>{ const u=imgSrc(it); return `<div class="bcard"><div class="bimg" style="${u?`background-image:url('${cssUrl(u)}')`:""}"></div><div class="bbody"><div class="brow"><span class="mono bcode">${esc(it.code)}</span><span class="mono bprice">${it.price?esc(it.price)+" ฿":""}</span></div><div class="bdesc">${esc(it.desc||"")}</div><div class="bmeta">${esc(it.brand||"")}${it.size?" · "+esc(it.size):""}</div></div></div>`; };
   ov.innerHTML=`<div class="btop noprint"><div class="mono" style="color:var(--gray);font-size:12.5px">บอร์ดการ์ด · อ้างอิงห้อง/ตำแหน่ง</div><div style="margin-left:auto;display:flex;gap:8px"><button class="btn" id="bPrint">🖨 พิมพ์ / PDF</button><button class="btn ghost" id="bClose">✕ ปิด</button></div></div>
   <div class="bhead">${logo?`<img src="${logo}" style="height:36px">`:""}<div><div class="mono" style="font-weight:700;letter-spacing:.1em;color:var(--deep);font-size:12px">MA.FC GROUP · CENTRAL SPEC</div><h2 style="margin:2px 0;color:var(--deep)">${esc(cv.project||p.name)}</h2><div style="color:var(--gray);font-size:13px">${esc(cv.buildingName||"")}${cv.site?" · "+esc(cv.site):""}</div></div><span style="margin-left:auto;font-family:var(--mono);color:#fff;background:${accent};padding:6px 16px;border-radius:99px;font-size:13px">${esc(pm[1]||"PROJECT")} · ${esc(p.stage||"—")}</span></div>
   ${rooms.map(r=>`<div class="bsec"><h3 style="border-left:5px solid ${accent}">${esc(r||"ไม่ระบุห้อง/ตำแหน่ง")} <small>${grp(r).length} รายการ</small></h3><div class="bgrid">${grp(r).map(card).join("")}</div></div>`).join("")}`;
@@ -1555,7 +1557,7 @@ function renderProjDetail(p){
         </div>
       </div>
       <div class="pd-side">
-        <div class="pd-img" id="pdImg" style="${im?`background-image:url('${esc(im)}')`:""}">${im?"":"รูปอาคาร"}</div>
+        <div class="pd-img" id="pdImg" style="${im?`background-image:url('${cssUrl(im)}')`:""}">${im?"":"รูปอาคาร"}</div>
         <input data-cv="coverImg" class="mono" placeholder="ลิงก์รูปอาคาร (URL)" value="${esc(cv.coverImg||'')}">
         <button class="btn ghost" id="pImgDel">ลบรูปอาคาร</button>
         <div class="pd-stats">
@@ -1601,13 +1603,13 @@ function projPresent(pp){
   slides.push(`<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">${logo?`<img src="${logo}" style="height:40px">`:""}<div style="font-family:var(--mono);font-weight:700;letter-spacing:.12em;color:var(--deep)">MA.FC GROUP · CENTRAL SPEC</div><span style="margin-left:auto;font-family:var(--mono);font-size:13px;color:#fff;background:${accent};padding:5px 14px;border-radius:99px">${esc(pm[1]||"PROJECT")} · ${esc(p.stage||"—")}</span></div>
     <h1 style="font-size:44px;font-weight:600;letter-spacing:-.02em;color:var(--deep);margin:8px 0 2px">${esc(cv.project||p.name||"โครงการ")}</h1>
     <div style="font-size:20px;color:var(--gray);margin-bottom:20px">${esc(cv.buildingName||"")}</div>
-    ${cv.coverImg?`<div style="height:150px;border-radius:14px;background:#F4F2EC url('${imgSrc({img:cv.coverImg})}') center/cover;margin-bottom:20px"></div>`:""}
+    ${cv.coverImg?`<div style="height:150px;border-radius:14px;background:#F4F2EC url('${cssUrl(imgSrc({img:cv.coverImg}))}') center/cover;margin-bottom:20px"></div>`:""}
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 34px">${fld.map(f=>`<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:8px 2px"><span style="color:var(--gray);font-size:13px">${f[0]}</span><span style="font-weight:600;font-size:13.5px;text-align:right">${esc(f[1]||"—")}</span></div>`).join("")}</div>${cfaRow}`);
   // 2..N) floors
   const flCount=Math.max(floorsN, rooms.reduce((m,r)=>Math.max(m,parseInt(r.floor)||0),0));
   for(let fl=1; fl<=flCount; fl++){
     const rs=rooms.filter(r=>String(r.floor)===String(fl));
-    const grid=rs.length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-content:start">${rs.map(rm=>{const num=(rm.floor||"")+String(rm.seq||"").padStart(2,"0");const im=imgSrc(rm);return `<div style="border:1px solid var(--line);border-radius:14px;overflow:hidden"><div style="aspect-ratio:1.5/1;background:#F4F2EC${im?`;background-image:url('${im}');background-size:cover;background-position:center`:""}"></div><div style="padding:9px 11px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="mono" style="font-weight:800;color:var(--deep)">${esc(num)}</span><span class="mono" style="color:var(--gray);font-size:11px">${esc(rm.area||"—")} ตร.ม.</span></div><div style="font-weight:600;font-size:13px;margin-top:2px">${esc(rm.name||"—")}</div></div></div>`;}).join("")}</div>`:`<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--gray)">— ยังไม่มีห้องในชั้นนี้ —</div>`;
+    const grid=rs.length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-content:start">${rs.map(rm=>{const num=(rm.floor||"")+String(rm.seq||"").padStart(2,"0");const im=imgSrc(rm);return `<div style="border:1px solid var(--line);border-radius:14px;overflow:hidden"><div style="aspect-ratio:1.5/1;background:#F4F2EC${im?`;background-image:url('${cssUrl(im)}');background-size:cover;background-position:center`:""}"></div><div style="padding:9px 11px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="mono" style="font-weight:800;color:var(--deep)">${esc(num)}</span><span class="mono" style="color:var(--gray);font-size:11px">${esc(rm.area||"—")} ตร.ม.</span></div><div style="font-weight:600;font-size:13px;margin-top:2px">${esc(rm.name||"—")}</div></div></div>`;}).join("")}</div>`:`<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--gray)">— ยังไม่มีห้องในชั้นนี้ —</div>`;
     slides.push(head("FLOOR PLAN","ชั้น "+fl,rs.length+" ห้อง")+`<div style="flex:1;overflow:hidden">${grid}</div>`);
   }
   // roof / closing summary
@@ -1712,7 +1714,7 @@ function openSearchAll(){
   modal(`<h3>ค้นหาทุกหมวด</h3><input id="gq" placeholder="พิมพ์ รหัส / ชื่อ / แบรนด์ …" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;font-family:inherit;outline:0"><div id="gres" style="margin-top:12px;max-height:58vh;overflow:auto"><div class="state" style="padding:24px">พิมพ์เพื่อค้นหาทั่วทั้งคลัง…</div></div>`);
   const inp=$("#gq"); if(inp)inp.focus();
   inp.oninput=()=>{ const q=inp.value.trim().toLowerCase(); const res=$("#gres"); if(!q){ res.innerHTML=`<div class="state" style="padding:24px">พิมพ์เพื่อค้นหา…</div>`; return; }
-    let out=[]; CATS.forEach(c=>{ (ROWS[c.id]||[]).forEach(r=>{ if((r.code+" "+r.desc+" "+r.brand).toLowerCase().includes(q)) out.push({c,r}); }); });
+    let out=[]; CATS.forEach(c=>{ (ROWS[c.id]||[]).forEach(r=>{ if(((r.code||"")+" "+(r.desc||"")+" "+(r.brand||"")).toLowerCase().includes(q)) out.push({c,r}); }); });
     const tot=out.length; out=out.slice(0,80);
     res.innerHTML = out.length? `<div style="color:var(--gray);font-size:12.5px;margin-bottom:6px">พบ ${tot} รายการ${tot>80?" (แสดง 80)":""}</div><table><tbody>`+out.map(x=>`<tr data-go="${esc(x.c.id)}::${esc(x.r.code)}" style="cursor:pointer"><td class="code">${esc(x.r.code)}</td><td>${esc(x.r.desc)}<div style="color:#b7c0cf;font-size:11px">${esc(x.c.disc)} · ${esc(x.c.name)}</div></td><td class="price">${x.r.price?esc(x.r.price):"—"}</td></tr>`).join("")+`</tbody></table>` : `<div class="state" style="padding:24px">ไม่พบ</div>`;
     $$("#gres [data-go]").forEach(tr=>tr.onclick=()=>{ const p=tr.dataset.go.split("::"); gotoCat(p[0],p[1]); });
