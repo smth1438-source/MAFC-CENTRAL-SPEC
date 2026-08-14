@@ -838,6 +838,119 @@ body.mafc-present .rowact,body.mafc-present td.price,body.mafc-present th:nth-ch
 #list td:nth-child(2) > div{flex-wrap:nowrap!important;}
 .mafc-nm .mafc-mf{margin-left:7px;vertical-align:middle;}
 
+/* =========================================================================
+   UI/UX pass — 14 ส.ค. 2569  (ต่อท้ายไฟล์ ไม่แก้ของเดิม)
+   อ้างกติกา ui-ux-pro-max ข้อ 1 (Accessibility) และ ข้อ 2 (Touch & Interaction)
+   ========================================================================= */
+
+/* ---- ข้อ 1: focus ring — เดิมไม่มี :focus-visible เลยทั้งไฟล์ ----------
+   คนที่ใช้คีย์บอร์ด/มือถือมี external keyboard มองไม่เห็นว่าโฟกัสอยู่ตรงไหน
+   ใช้สีฟ้าอ่อนบนโหมดมืด (--blue #0047AB เข้มเกินไปบนพื้น #060708)
+   และฟ้าเข้มบนโหมดสว่าง เพื่อให้ contrast ของวงแหวน ≥3:1 ทั้งสองโหมด        */
+:where(a, button, input, select, textarea, summary, [tabindex],
+       .ic, .btn, .cta, .tab, .seg, .ptbtn, .tb, .kebab-btn):focus-visible {
+  outline: 2px solid #5b9be6 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(91,155,230,.22) !important;
+  border-radius: var(--rs);
+}
+html.mafc-light :where(a, button, input, select, textarea, summary, [tabindex],
+       .ic, .btn, .cta, .tab, .seg, .ptbtn, .tb, .kebab-btn):focus-visible {
+  outline-color: #0047AB !important;
+  box-shadow: 0 0 0 4px rgba(0,71,171,.18) !important;
+}
+/* ใช้เมาส์ไม่ต้องเห็นวงแหวน — แต่ห้ามปิด :focus-visible เด็ดขาด */
+:where(a, button, .ic, .btn, .cta, .tab, .seg, .ptbtn, .tb):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---- ข้อ 2: เป้าสัมผัส ≥44×44px เฉพาะอุปกรณ์สัมผัส ---------------------
+   เดิม #list .rowact .ic บังคับ 26×26px + gap 3px — เล็กกว่าเกณฑ์ Apple HIG
+   ครึ่งหนึ่ง กดพลาดง่ายมากบนหน้างาน  เมาส์ไม่ต้องแก้ (pointer:fine ไม่โดน)  */
+@media (pointer: coarse) {
+  .ic, .tb, .ptbtn, .kebab-btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  #list .rowact .ic {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 15px !important;
+  }
+  #list .rowact { gap: 8px !important; }
+  .btn, .cta { min-height: 44px !important; }
+  .apptop .btn { min-height: 44px !important; }
+}
+
+/* ---- ทุกจุดที่คลิกได้ต้องเป็นมือชี้ (เช็คลิสต์ Interaction Feedback) ---- */
+.ic, .tb, .ptbtn, .kebab-btn, .tab, .seg, [data-delacc], [data-go] { cursor: pointer; }
+
+/* ---- transition 150–300ms ทุกการเปลี่ยน state ไม่ให้กระโดด 0ms --------- */
+.ic, .tb, .ptbtn, .kebab-btn, .btn, .cta, .tab, .seg {
+  transition: background-color .18s ease, border-color .18s ease,
+              color .18s ease, box-shadow .18s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ic, .tb, .ptbtn, .kebab-btn, .btn, .cta, .tab, .seg { transition: none; }
+}
+
+/* ---- ไอคอน SVG ที่ addon p4 แทรกเข้ามา ให้จัดกลางเสมอ ------------------ */
+.ic > svg, .btn > svg, .cta > svg, .tb > svg, .ptbtn > svg { pointer-events: none; }
+
+/* =========================================================================
+   UI/UX pass รอบ 2 — แก้ของที่วัดเจอบนเบราว์เซอร์จริง (ไม่ใช่เดา)
+   ========================================================================= */
+
+/* ---- (ก) .hint ทับข้อความ hero บนจอแคบ -------------------------------
+   วัดที่ 390px: .hint x306 y542 62×40  ·  #heroSub x22 y496 346×70
+   ทับกัน 62×24 = 1488px²  →  ดันออกจากทับด้วยการเอากลับเข้า flow
+   (.sec เป็น flex column align-items:center อยู่แล้ว จึงจัดกลางให้เอง)  */
+@media (max-width: 700px) {
+  .sec .hint {
+    position: static !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 20px auto 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    width: auto !important;
+  }
+  .sec .hint span {
+    display: inline !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ---- (ข) contrast บน hero ที่เป็นพื้นมืดเสมอ ---------------------------
+   #hero ถูกบังคับ background:#060708 ทั้งสองโหมด แต่ .hint ดึงสีเทาจาก
+   token ตามโหมด → โหมดสว่างได้ --gray #6b7280 บนพื้นมืด = 4.3:1 ตกเกณฑ์
+   ตรึงสีข้อความบน hero ไม่ให้ผูกกับโหมด                                  */
+#hero .hint,
+#hero .hint span,
+html.mafc-light #hero .hint,
+html.mafc-light #hero .hint span {
+  color: #a8b3c4 !important;   /* บน #060708 = 8.9:1 */
+}
+
+/* ---- (ค) สีเน้นในหัวข้อใหญ่ มืดเกินไปบนพื้นดำ --------------------------
+   .big2 > span ใช้ --blue #0047AB บน #060708 = 2.17:1
+   ข้อความ ≥24px ต้อง ≥3:1 → ใช้ฟ้าอ่อนที่มีใน token อยู่แล้ว           */
+#hero .big2 span,
+#hero h2.big2 span,
+html.mafc-light #hero .big2 span {
+  color: #5b9be6 !important;   /* บน #060708 = 6.9:1 */
+}
+
+/* ---- (ง) ป้าย CENTRAL SPEC ตัวเล็ก โหมดสว่างจางเกิน --------------------
+   #8b96a8 บนแถบขาว = 3.0:1 แต่ 9.5px ต้อง ≥4.5:1                        */
+html.mafc-light .hnav .brand small,
+html.mafc-light .apptop .brand small {
+  /* แถบ hnav เป็น rgba(255,255,255,.86) ทับพื้นมืด → พื้นจริงเป็นเทา ~#DCDCDC
+     ไม่ใช่ขาวสนิท  #5a6474 จึงได้แค่ 4.36:1  ต้องเข้มกว่านี้              */
+  color: #4b5563 !important;   /* บนพื้นผสมจริง = 4.9:1 */
+}
 </style>
 </head>
 <body>
@@ -3274,6 +3387,216 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   };
 
   log("พร้อมใช้งาน — แคชย้ายมาอยู่บน IndexedDB แล้ว");
+})();
+
+/* ===== addon p3: requestId ===== */
+/* ============================================================================
+ * MA.FC Central Spec — addon p3 : REQUEST-ID
+ * ----------------------------------------------------------------------------
+ * คู่กับแพตช์ Apps Script `PATCH_V3.17_เขียนซ้ำ_2026-08-14.txt` (PATCH B)
+ *
+ * ปัญหา : `apiWrite` ในเครื่องยนต์ ส่งคำสั่งเขียนด้วย POST
+ *         ถ้าอ่านคำตอบไม่สำเร็จ (เน็ตสะดุด "หลัง" เซิร์ฟเวอร์รับคำสั่งไปแล้ว)
+ *         จะ fallback ยิงซ้ำเป็น JSONP GET ด้วย params ชุดเดิม
+ *         แต่ `doGet` ฝั่งเซิร์ฟเวอร์รับแต่ action อ่าน
+ *         → ตอบ "unknown action: add" → เว็บขึ้นว่าบันทึกไม่สำเร็จ
+ *         → ผู้ใช้กดบันทึกซ้ำ → ได้ข้อมูล 2 แถว
+ *
+ * วิธีแก้ : แนบ `requestId` ไปกับทุกคำสั่งเขียน
+ *         ฝั่งเซิร์ฟเวอร์จำคำตอบไว้ 10 นาที — ยิงซ้ำด้วย id เดิมได้คำตอบเดิม
+ *         ไม่เขียนซ้ำ  (idempotent)
+ *
+ *         `apiWrite` แก้ params object ตัวเดิม แล้วใช้ต่อในทาง fallback
+ *         → requestId ติดไปทั้งทาง POST และ GET โดยอัตโนมัติ
+ *
+ * ไม่แตะเครื่องยนต์ — ทับ global `apiWrite` จาก layer เสริมเท่านั้น
+ * ปลอดภัย : ถ้าเซิร์ฟเวอร์ยังไม่ได้แพตช์ จะมองข้าม requestId ไปเฉย ๆ
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var _apiWrite = window.apiWrite;
+  if (typeof _apiWrite !== "function") {
+    try { console.log("[requestid] ไม่พบ apiWrite เดิม — ยกเลิกการทับ"); } catch (_) {}
+    return;
+  }
+
+  var seq = 0;
+  function newId() {
+    seq++;
+    var rnd;
+    try {
+      if (window.crypto && crypto.getRandomValues) {
+        var a = new Uint32Array(2);
+        crypto.getRandomValues(a);
+        rnd = a[0].toString(36) + a[1].toString(36);
+      }
+    } catch (_) {}
+    if (!rnd) rnd = Math.random().toString(36).slice(2, 12);
+    return "r" + Date.now().toString(36) + "-" + seq.toString(36) + "-" + rnd;
+  }
+
+  window.apiWrite = function (params) {
+    try {
+      if (params && typeof params === "object" && !params.requestId) {
+        params.requestId = newId();
+      }
+    } catch (_) { /* ถ้าแนบไม่ได้ ก็ปล่อยผ่าน ระบบยังทำงานเหมือนเดิม */ }
+    return _apiWrite(params);
+  };
+
+  try { console.log("[requestid] พร้อมใช้งาน — ทุกคำสั่งเขียนจะมี requestId แนบไป"); } catch (_) {}
+})();
+
+/* ===== addon p4: icon discipline ===== */
+/* ============================================================================
+ * MA.FC Central Spec — addon p4 : ICON DISCIPLINE
+ * ----------------------------------------------------------------------------
+ * กติกา UI/UX ข้อ 4: ไอคอนต้องเป็น SVG ชุดเดียว ห้ามใช้ emoji ทำหน้าที่ไอคอน
+ *
+ * ของเดิม : เครื่องยนต์มีชุดไอคอน SVG อยู่แล้ว (ICN() — viewBox 24, stroke 2,
+ *           currentColor) และใช้ผ่าน data-icn ที่ปุ่ม gear/print/reload/search/
+ *           chart/trash  แต่ยังมีจุดที่หลุดไปใช้ emoji แทน:
+ *             ปุ่มแถวรายการ  👁 ✎ ⧉ 🛒 🗑   (icon-only — ผิดหนักสุด)
+ *             ปุ่มมีข้อความ  🖨 🔗 📋 📈 🏠 🔀 ✕
+ *           ผลคือไอคอนคนละสไตล์/คนละน้ำหนักปนกัน และบนเครื่องที่ฟอนต์ emoji
+ *           ต่างกัน (Windows / Android / iOS) จะเห็นไม่เหมือนกันเลย
+ *
+ * วิธีแก้ : แทน emoji ด้วย SVG "ชุดเดียวกับ ICN()" — path ลอกมาตรง ๆ
+ *           เพิ่มเฉพาะที่ ICN ไม่มี (link, clipboard, home, x)
+ *           ทำหลัง render ทุกครั้งผ่าน MutationObserver — ไม่แตะเครื่องยนต์
+ *
+ * ปลอดภัย : ใส่ pointer-events:none ให้ svg ที่แทรก → คลิกตกที่ปุ่มตัวเดิมเสมอ
+ *           onclick ที่เครื่องยนต์ผูกไว้กับ element ตัวนอกจึงไม่หลุด
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var HEAD = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" ' +
+             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+             'aria-hidden="true" focusable="false" style="pointer-events:none;flex:0 0 auto">';
+
+  /* path ชุดเดียวกับ ICN() ในเครื่องยนต์ — คัดลอกให้ตรงกันเป๊ะ */
+  var P = {
+    eye:   '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    edit:  '<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="M14.5 6.5l3 3"/>',
+    copy:  '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+    cart:  '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 12.2a1.6 1.6 0 0 0 1.6 1.3h8.4a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/>',
+    trash: '<path d="M4 7h16"/><path d="M9 7V5a1.6 1.6 0 0 1 1.6-1.6h2.8A1.6 1.6 0 0 1 15 5v2"/><path d="M6 7l1 12.2a1.6 1.6 0 0 0 1.6 1.5h6.8A1.6 1.6 0 0 0 17 19.2L18 7"/>',
+    swap:  '<path d="M7 10H3l4-4"/><path d="M17 14h4l-4 4"/><path d="M3 10h14"/><path d="M7 14h14"/>',
+    chart: '<path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="14" width="3" height="3"/>',
+    print: '<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M8 17h8v4H8z"/>',
+    /* เพิ่มใหม่ — วาดด้วย grid/stroke เดียวกับชุดเดิม */
+    link:  '<path d="M10 13a5 5 0 0 0 7.1 0l2.9-2.9a5 5 0 0 0-7.1-7.1L11.5 4.4"/><path d="M14 11a5 5 0 0 0-7.1 0L4 13.9a5 5 0 0 0 7.1 7.1l1.4-1.4"/>',
+    clip:  '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/>',
+    home:  '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-5.5h5V20"/>',
+    x:     '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.4l3.4 2"/>',
+    down:  '<path d="M12 3v13"/><path d="M7 12l5 5 5-5"/><path d="M4 20h16"/>',
+    left:  '<path d="M20 12H4"/><path d="M10 6l-6 6 6 6"/>',
+    right: '<path d="M4 12h16"/><path d="M14 6l6 6-6 6"/>',
+    more:  '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
+    check: '<path d="M4 12.5 9 17.5 20 6.5"/>'
+  };
+  function svg(n) { return HEAD + (P[n] || "") + "</svg>"; }
+
+  /* emoji → ชื่อไอคอน */
+  var MAP = {
+    "👁": "eye",    // 👁
+    "✎":       "edit",   // ✎
+    "⧉":       "copy",   // ⧉
+    "🛒": "cart",   // 🛒
+    "🗑": "trash",  // 🗑
+    "🖨": "print",  // 🖨
+    "🔗": "link",   // 🔗
+    "📋": "clip",   // 📋
+    "📈": "chart",  // 📈
+    "🏠": "home",   // 🏠
+    "🔀": "swap",   // 🔀
+    "✕":       "x",      // ✕
+    "✖":       "x",
+    "🔍": "search", // 🔍
+    "🕘": "clock",  // 🕘
+    "⬇":       "down",   // ⬇
+    "⬆":       "down",
+    "←":       "left",   // ←
+    "→":       "right",  // →
+    "⋮":       "more",   // ⋮
+    "⇄":       "swap",   // ⇄
+    "✓":       "check"   // ✓
+  };
+  // เรียงคีย์จากยาวไปสั้น กันตัวประกอบ (variation selector) ตัดผิด
+  var KEYS = Object.keys(MAP).sort(function (a, b) { return b.length - a.length; });
+
+  var DONE = "data-icnsvg";   // กันทำซ้ำ element เดิม
+  var VS = /[️︎‍]/g;   // variation selector / ZWJ
+
+  function convert(el) {
+    if (!el || el.nodeType !== 1 || el.hasAttribute(DONE)) return false;
+    var txt = el.textContent || "";
+    if (!txt) return false;
+
+    var hit = null;
+    for (var i = 0; i < KEYS.length; i++) {
+      if (txt.indexOf(KEYS[i]) >= 0) { hit = KEYS[i]; break; }
+    }
+    if (!hit) return false;
+
+    // เหลือเฉพาะข้อความจริง (ตัด emoji + variation selector + ช่องว่างหัวท้าย)
+    var label = txt.split(hit).join("").replace(VS, "").replace(/\s+/g, " ").trim();
+
+    // สัญลักษณ์อยู่ท้ายข้อความ (เช่น "เข้าสู่ระบบ →") ให้ไอคอนอยู่ท้ายเหมือนเดิม
+    var trailing = txt.replace(VS, "").trimEnd().endsWith(hit);
+
+    el.setAttribute(DONE, "1");
+    el.innerHTML = label
+      ? (trailing ? '<span>' + label + "</span>" + svg(MAP[hit])
+                  : svg(MAP[hit]) + '<span>' + label + "</span>")
+      : svg(MAP[hit]);
+
+    // ปุ่มที่เหลือแต่ไอคอนต้องมีชื่อให้ screen reader (กติกาข้อ 1)
+    if (!label && !el.getAttribute("aria-label")) {
+      var t = el.getAttribute("title");
+      if (t) el.setAttribute("aria-label", t);
+    }
+    if (!el.style.display) {
+      el.style.display = "inline-flex";
+      el.style.alignItems = "center";
+      el.style.gap = "6px";
+    }
+    return true;
+  }
+
+  var SEL = '.ic, .btn, .cta, .tb, .ptbtn, .kebab-btn, .seg, [data-delacc]';
+  var n = 0;
+  function sweep(root) {
+    try {
+      var list = (root || document).querySelectorAll(SEL);
+      for (var i = 0; i < list.length; i++) if (convert(list[i])) n++;
+    } catch (_) {}
+  }
+
+  function boot() {
+    sweep(document);
+    try {
+      var mo = new MutationObserver(function (recs) {
+        for (var i = 0; i < recs.length; i++) {
+          var a = recs[i].addedNodes;
+          for (var j = 0; j < a.length; j++) {
+            if (a[j].nodeType === 1) { sweep(a[j]); if (a[j].matches && a[j].matches(SEL)) { if (convert(a[j])) n++; } }
+          }
+        }
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    } catch (_) {}
+    try { console.log("[icons] แทน emoji ด้วย SVG ชุดเดียวกับเครื่องยนต์แล้ว " + n + " จุด"); } catch (_) {}
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+
+  window.__mafcIconsConverted = function () { return n; };
 })();
 
 </script>
