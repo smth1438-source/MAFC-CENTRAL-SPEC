@@ -3135,6 +3135,146 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(tick,100); });
 })();
 
+/* ===== addon p2: fastload ===== */
+/* ============================================================================
+ * MA.FC Central Spec — addon p2 : FASTLOAD (เฟส 1 ส่วนที่ 1)
+ * ----------------------------------------------------------------------------
+ * ปัญหา : เครื่องยนต์แคช workbook ลง localStorage (`mafc_cache`)
+ *         - เพดาน localStorage ~5 MB ต่อโดเมน
+ *         - `saveCache` ครอบด้วย try/catch เปล่า → เกินเพดานแล้ว "เงียบ"
+ *         - ผลคือ `loadCache()` คืน null ทุกครั้ง → fast-path ไม่เคยทำงาน
+ *           → ต้องรอ Apps Script 5-10 วินาที ทุกครั้งที่เปิดเว็บ
+ *         - แถม JSON.stringify/parse ของหลาย MB เป็น synchronous → บล็อกจอ
+ *
+ * วิธีแก้ : ย้ายแคชไป IndexedDB (โควตาระดับหลายร้อย MB · async · เก็บ object
+ *         ได้เลยไม่ต้อง stringify) โดย **ไม่แตะเครื่องยนต์**
+ *         อาศัยว่า addon โหลดหลังเครื่องยนต์ จึงเขียนทับ global function ได้
+ *         (classic script: function declaration ผูกกับ window)
+ *
+ * ทับ 3 ตัว : saveCache · loadCache · loadData
+ * ปลอดภัย  : ถ้า IndexedDB ใช้ไม่ได้ ตกกลับไปใช้ของเดิมทุกกรณี
+ * ไม่ต้องแก้ Apps Script · ไม่ต้องแก้ GitHub · ไม่ต้องให้ทีมทำอะไร
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var DB_NAME = "mafc_spec", DB_VER = 1, STORE = "kv", KEY = "workbook";
+  var mem = null;          // สำเนาในหน่วยความจำ (คืนให้ loadCache แบบ sync ได้)
+  var ready = null;        // promise ของการอ่าน IndexedDB รอบแรก
+  var idbOk = (typeof indexedDB !== "undefined" && indexedDB !== null);
+
+  function log(msg, extra) {
+    try { console.log("[fastload] " + msg, extra === undefined ? "" : extra); } catch (_) {}
+  }
+
+  function openDB() {
+    return new Promise(function (res, rej) {
+      var req;
+      try { req = indexedDB.open(DB_NAME, DB_VER); } catch (e) { return rej(e); }
+      req.onupgradeneeded = function () {
+        try { if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE); }
+        catch (e) { /* ignore */ }
+      };
+      req.onsuccess = function () { res(req.result); };
+      req.onerror = function () { rej(req.error || new Error("idb open failed")); };
+      req.onblocked = function () { rej(new Error("idb blocked")); };
+    });
+  }
+
+  function idbGet() {
+    if (!idbOk) return Promise.resolve(null);
+    return openDB().then(function (db) {
+      return new Promise(function (res) {
+        var r;
+        try { r = db.transaction(STORE, "readonly").objectStore(STORE).get(KEY); }
+        catch (e) { return res(null); }
+        r.onsuccess = function () { res(r.result || null); };
+        r.onerror = function () { res(null); };
+      });
+    }).catch(function () { return null; });
+  }
+
+  function idbPut(val) {
+    if (!idbOk) return Promise.resolve(false);
+    return openDB().then(function (db) {
+      return new Promise(function (res) {
+        var r;
+        try { r = db.transaction(STORE, "readwrite").objectStore(STORE).put(val, KEY); }
+        catch (e) { return res(false); }
+        r.onsuccess = function () { res(true); };
+        r.onerror = function () { res(false); };
+      });
+    }).catch(function () { return false; });
+  }
+
+  function valid(d) { return !!(d && d.sheets && d.sheets.length); }
+
+  /* ---- อ่านแคชรอบแรกจาก IndexedDB (ทำทันทีตอนโหลดสคริปต์) ---- */
+  var t0 = (window.performance && performance.now) ? performance.now() : 0;
+  ready = idbGet().then(function (v) {
+    if (valid(v)) {
+      mem = v;
+      var ms = ((window.performance && performance.now) ? performance.now() : 0) - t0;
+      log("อ่านแคชจาก IndexedDB สำเร็จ " + v.sheets.length + " แท็บ ใน " + Math.round(ms) + " ms");
+    } else {
+      log("ยังไม่มีแคชใน IndexedDB — รอบนี้จะดึงจาก Apps Script ตามปกติ");
+    }
+  }).catch(function () {});
+
+  /* ---- เก็บของเดิมไว้ก่อนทับ ---- */
+  var _saveCache = window.saveCache;
+  var _loadCache = window.loadCache;
+  var _loadData  = window.loadData;
+
+  if (typeof _saveCache !== "function" || typeof _loadCache !== "function" || typeof _loadData !== "function") {
+    log("ไม่พบฟังก์ชันเดิมของเครื่องยนต์ — ยกเลิกการทับ (ระบบทำงานแบบเดิม)");
+    return;
+  }
+
+  /* ---- 1) saveCache : เขียน IndexedDB เป็นหลัก · localStorage เป็นของแถม ---- */
+  window.saveCache = function (d) {
+    if (!valid(d)) return;
+    mem = d;
+    idbPut(d).then(function (ok) {
+      log(ok ? "เขียนแคชลง IndexedDB แล้ว" : "เขียน IndexedDB ไม่สำเร็จ");
+    });
+    // ยังเขียน localStorage ต่อ เผื่อเบราว์เซอร์เก่าที่ไม่มี IndexedDB
+    // แต่ไม่ปล่อยให้ล้มเงียบ — วัดขนาดแล้วบอกให้รู้
+    try {
+      var s = JSON.stringify(d);
+      if (s.length > 4.5 * 1024 * 1024) {
+        log("ข้อมูลใหญ่ " + (s.length / 1048576).toFixed(2) + " MB — เกินเพดาน localStorage ข้ามไป (IndexedDB รับแทนแล้ว)");
+        return;
+      }
+      localStorage.setItem("mafc_cache", s);
+    } catch (e) {
+      log("localStorage เขียนไม่ได้ (" + (e && e.name ? e.name : "error") + ") — ไม่กระทบ IndexedDB รับแทนแล้ว");
+    }
+  };
+
+  /* ---- 2) loadCache : คืนจากหน่วยความจำก่อน แล้วค่อยตกไป localStorage เดิม ---- */
+  window.loadCache = function () {
+    if (valid(mem)) return mem;
+    var old = null;
+    try { old = _loadCache(); } catch (_) {}
+    if (valid(old)) {
+      mem = old;
+      idbPut(old);              // ย้ายของเดิมเข้า IndexedDB ให้อัตโนมัติ (ครั้งเดียว)
+      log("ย้ายแคชเดิมจาก localStorage เข้า IndexedDB");
+    }
+    return old;
+  };
+
+  /* ---- 3) loadData : รอ IndexedDB อ่านเสร็จก่อน แล้วปล่อยให้ของเดิมทำงาน ---- */
+  window.loadData = function (force) {
+    return Promise.resolve(ready)
+      .catch(function () {})
+      .then(function () { return _loadData(force); });
+  };
+
+  log("พร้อมใช้งาน — แคชย้ายมาอยู่บน IndexedDB แล้ว");
+})();
+
 </script>
 </body>
 </html>
