@@ -2,7 +2,8 @@
 <html lang="th">
 <script>/* MA.FC auto-connect */
 try{var c=JSON.parse(localStorage.getItem("mafc_cfg")||"{}")||{};
-if(!c.url)c.url="https://script.google.com/macros/s/AKfycbzTigBhUbgeQ4wN1tHhJIVWexVUd8hdFuaqooxcLw_YQN7_vvfZtYZc1ndMvOgbcJ5K/exec";
+/* บังคับใช้ URL ล่าสุดเสมอ — deployment เก่าถูกปิดแล้ว ถ้าไม่ทับ เครื่องที่เคยใช้จะยังยิงไปที่เก่า */
+c.url="https://script.google.com/macros/s/AKfycbwntOeoGjUIeCcY6S96NmZsmWqGW97NR7X5-gr5Am2KjuyFLn5cP8mtnEi9_SJmxBoD/exec";
 /* token: ทีมกรอกเองครั้งเดียวที่ปุ่ม ⚙ (เก็บใน localStorage) — ห้ามฝังในไฟล์สาธารณะ */
 localStorage.setItem("mafc_cfg",JSON.stringify(c));}catch(e){}</script>
 <head>
