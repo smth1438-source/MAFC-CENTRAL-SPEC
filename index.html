@@ -402,7 +402,6 @@ body.ro .act-edit,body.ro .act-del,body.ro .act-copy,body.ro #btnAdd,body.ro #bt
 .cardsec span{font-family:var(--mono);font-size:11px;background:#eef3fb;color:var(--blue);border-radius:999px;padding:2px 9px;}
 </style>
 <style id="v4theme">
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Archivo:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap');
 /* ========= MA.FC V4 — CORPORATE BLUE · MINIMAL · DARK (CSS override; engine mostly untouched) ========= */
 :root{
   --blue:#0047AB; --navy:#062B63; --lum:#116DA7; --org:#E8820C;   /* brand palette */
@@ -1258,6 +1257,19 @@ html:root .price,html:root .qty,html:root .gradecell{font-variant-numeric:tabula
 
 /* ป้ายเตือน "ราคาเก่ากว่า 90 วัน" — #e67e22 บนพื้นขาว = 2.85:1 ตก AA */
 html:root .warnold,html:root [title*="ราคาเก่า"]{color:var(--warn)!important}
+
+/* ══════════════ 17. ตัดฟอนต์ที่ไม่ได้ใช้ + คอนทราสต์ขอบ (V5.02) ══════════════
+ * V4 โหลด Google Fonts 5 family แต่ใช้จริง 2 — Geist / Archivo / Space Mono
+ * ถูกอ้างเฉพาะใน token เท่านั้น ชี้กลับมาที่ฟอนต์ที่โหลดจริงแล้วตัดคำขอทิ้ง */
+html:root{
+  --sans:var(--sf);
+  --disp:var(--sf);
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+
+/* ขอบการ์ดจางเกินไปกลางแดด — เพิ่มความเข้มขึ้นเล็กน้อยทั้งสองโหมด */
+html:not(.mafc-light){--hair:#33456F; --hair-2:#22345A; --line:#33456F}
+html.mafc-light{--hair:#CFCBBF; --hair-2:#E4E1DA; --line:#CFCBBF}
 
 </style>
 </head>
