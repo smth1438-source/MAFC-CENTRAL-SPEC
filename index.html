@@ -1232,6 +1232,33 @@ html:not(.mafc-light) .cta.big{color:#062B63}
 html:not(.mafc-light) #hero .s2 .cta,
 html:not(.mafc-light) #hero .s4 .cta{color:#fff}
 
+/* ══════════════ 16. A11Y + ประสิทธิภาพ (ตาม A11Y.md · WCAG 2.2 AA) ══════════════
+ * ผลตรวจ baseline-ui 2026-08-16 — แก้เฉพาะข้อที่ทำได้จากชั้น CSS
+ * ส่วนที่ต้องแตะ DOM (ปุ่มไอคอน/อนิเมชันนอกจอ) อยู่ใน addon p5 */
+
+/* มือถือ: 100vh ไม่นับแถบเบราว์เซอร์ → เนื้อหาโดนตัด */
+html:root .sec{min-height:100dvh}
+html:root #app{min-height:100dvh}
+
+/* สเกล z-index — ของใหม่ทุกตัวต้องใช้ token ห้ามใส่ตัวเลขดิบ
+   (ของเดิม 26 ค่ายังไม่แตะ เพราะสลับลำดับซ้อนอาจทำ overlay พัง) */
+:root{
+  --z-base:0; --z-raised:10; --z-sticky:100;
+  --z-drawer:200; --z-modal:300; --z-toast:400; --z-tooltip:500;
+}
+
+/* backdrop-filter บนแถบเต็มความกว้าง — ลดจาก 18px ให้เบาลงบนมือถือกลาง */
+html:root .cmpbar{backdrop-filter:blur(12px) saturate(1.2)}
+
+/* will-change ค้างถาวรกินหน่วยความจำ GPU — addon p5 เปิด/ปิดตามตอนวิ่งจริง */
+html:root #mafcWave,html:root .s2 .star{will-change:auto}
+
+/* ตัวเลขในตารางให้ตรงคอลัมน์แม้ฟอนต์ mono ไม่ถูกโหลด */
+html:root .price,html:root .qty,html:root .gradecell{font-variant-numeric:tabular-nums}
+
+/* ป้ายเตือน "ราคาเก่ากว่า 90 วัน" — #e67e22 บนพื้นขาว = 2.85:1 ตก AA */
+html:root .warnold,html:root [title*="ราคาเก่า"]{color:var(--warn)!important}
+
 </style>
 </head>
 <body>
@@ -3882,6 +3909,156 @@ loadData().then(()=>{ heroTiles(); if(!$("#hub").classList.contains("hidden"))re
   else boot();
 
   window.__mafcIconsConverted = function () { return n; };
+})();
+
+
+/* ===== addon p5: a11y ===== */
+/* ============================================================================
+ * MA.FC Central Spec — addon p5 : ACCESSIBILITY (A11Y.md · Standard WCAG 2.2 AA)
+ * ----------------------------------------------------------------------------
+ * ตามกฏเหล็กข้อ 1: ไม่แตะ <script> เครื่องยนต์เดิม — แก้หลัง render ผ่าน layer นี้
+ *
+ * แก้ 3 เรื่องที่ผลตรวจ baseline-ui จับได้
+ *   1. ปุ่มไอคอนเป็น <span>/<div> + title → กดด้วยคีย์บอร์ดไม่ได้เลย
+ *      (คนที่ใช้คีย์บอร์ดอย่างเดียว ลบ/แก้ไข/พิมพ์ ไม่ได้)
+ *   2. ลูกศรไลต์บ็อกซ์ #presPrev / #presNext ไม่มีชื่อที่เข้าถึงได้
+ *   3. อนิเมชันวนลูปวิ่งตลอดแม้อยู่นอกจอ + will-change ค้างถาวร (กินแบตมือถือ)
+ *
+ * ปลอดภัย: ไม่ผูก onclick ใหม่ ไม่แตะ handler เดิม — แค่เติม attribute
+ *          และส่ง .click() ต่อเมื่อกด Enter/Space เท่านั้น
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var TAG = "[a11y]";
+  var MARK = "data-a11y";
+
+  /* ---------- 1. ปุ่มไอคอน ---------- */
+  var SEL = ".ic,.tb,.navbtn,.ptbtn,.lb-x,.dr-x,.mclose,[data-delacc],[data-rm]";
+
+  function labelOf(el) {
+    var t = el.getAttribute("title");
+    if (t && t.trim()) return t.trim();
+    var x = (el.textContent || "").replace(/\s+/g, " ").trim();
+    return x || "";
+  }
+
+  function upgrade(root) {
+    var list;
+    try { list = (root || document).querySelectorAll(SEL); } catch (e) { return 0; }
+    var n = 0;
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.hasAttribute(MARK)) continue;
+
+      /* .ic ที่ครอบ checkbox คือ label ของตัวเลือก "เทียบ" — ไม่ใช่ปุ่ม */
+      if (el.querySelector && el.querySelector("input")) { el.setAttribute(MARK, "skip"); continue; }
+
+      var isNative = el.tagName === "BUTTON" || el.tagName === "A";
+
+      if (!isNative) {
+        if (!el.getAttribute("role")) el.setAttribute("role", "button");
+        if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+      }
+      if (!el.getAttribute("aria-label")) {
+        var lb = labelOf(el);
+        if (lb) el.setAttribute("aria-label", lb);
+      }
+      el.setAttribute(MARK, "1");
+      n++;
+    }
+    return n;
+  }
+
+  /* ลูกศรไลต์บ็อกซ์ — ไอคอนล้วน ไม่มีข้อความให้ดึงชื่อ */
+  var NAMED = { presPrev: "ก่อนหน้า", presNext: "ถัดไป", presClose: "ปิด" };
+  function nameById() {
+    for (var id in NAMED) {
+      var el = document.getElementById(id);
+      if (el && !el.getAttribute("aria-label")) el.setAttribute("aria-label", NAMED[id]);
+    }
+  }
+
+  /* คีย์บอร์ด: Enter / Space บนอะไรก็ตามที่เป็น role=button แต่ไม่ใช่ปุ่มจริง
+     ผูกครั้งเดียวแบบ delegate — ไม่ต้องไล่ผูกทีละตัว และไม่ชนกับ handler เดิม */
+  function onKey(e) {
+    if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+    var el = e.target;
+    if (!el || el.nodeType !== 1) return;
+    if (el.tagName === "BUTTON" || el.tagName === "A" || el.tagName === "INPUT") return;
+    if (el.getAttribute("role") !== "button") return;
+    e.preventDefault();
+    try { el.click(); } catch (_) {}
+  }
+
+  /* ---------- 3. อนิเมชันวนลูป: หยุดเมื่ออยู่นอกจอ ---------- */
+  var LOOP = ".tilemarq,.s3 #heroTiles,.hint span,#mafcWave,.s2 .star";
+  var io = null;
+
+  function setRunning(el, on) {
+    try {
+      el.style.animationPlayState = on ? "running" : "paused";
+      el.style.willChange = on ? "transform" : "auto";
+    } catch (_) {}
+  }
+
+  function watchLoops() {
+    if (!("IntersectionObserver" in window)) return 0;
+    if (!io) {
+      io = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) setRunning(entries[i].target, entries[i].isIntersecting);
+      }, { rootMargin: "120px" });
+    }
+    var list, n = 0;
+    try { list = document.querySelectorAll(LOOP); } catch (e) { return 0; }
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].hasAttribute("data-a11y-loop")) continue;
+      list[j].setAttribute("data-a11y-loop", "1");
+      io.observe(list[j]);
+      n++;
+    }
+    return n;
+  }
+
+  /* ---------- boot ---------- */
+  var total = 0;
+
+  function pass() {
+    nameById();              /* ชื่อเฉพาะทางต้องมาก่อน — กันดึงข้อความข้างในมาเป็นชื่อ */
+    total += upgrade(document);
+    watchLoops();
+  }
+
+  function boot() {
+    document.addEventListener("keydown", onKey, true);
+    pass();
+
+    /* หน้าเว็บ render ใหม่ตลอดเวลา — ตามเก็บของใหม่ด้วย MutationObserver
+       (หน่วงรวมงานเป็นชุด กัน observer ยิงถี่) */
+    var timer = null;
+    try {
+      var mo = new MutationObserver(function () {
+        if (timer) return;
+        timer = setTimeout(function () { timer = null; pass(); }, 120);
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    } catch (_) {}
+
+    try { console.log(TAG + " พร้อมใช้งาน — ปรับปุ่มไอคอนแล้ว " + total + " ตัว"); } catch (_) {}
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+
+  window.__mafcA11y = function () {
+    return {
+      upgraded: total,
+      pending: SEL.split(",").map(function (x) {
+        return document.querySelectorAll(x + ":not([" + MARK + "])").length;
+      }).reduce(function (a, b) { return a + b; }, 0),
+      loops: document.querySelectorAll("[data-a11y-loop]").length
+    };
+  };
 })();
 
 </script>
