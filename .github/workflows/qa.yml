@@ -1,0 +1,22 @@
+name: QA — layout, contrast, a11y
+
+on:
+  pull_request:
+    paths: ['index.html', 'qa-check.mjs', '.github/workflows/qa.yml']
+  workflow_dispatch:
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: install playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i -D playwright@1.48.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium
+      - name: run checks
+        run: node qa-check.mjs
