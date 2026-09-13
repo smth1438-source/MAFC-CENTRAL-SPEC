@@ -9,6 +9,18 @@ function lin(c){ c/=255; return c<=0.04045 ? c/12.92 : ((c+0.055)/1.055)**2.4; }
 function lum([r,g,b]){ return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b); }
 function ratio(a,b){ const l1=lum(a),l2=lum(b); const [h,lo]=l1>l2?[l1,l2]:[l2,l1]; return (h+0.05)/(lo+0.05); }
 
+// CI: ตัดเน็ตภายนอกทิ้ง (ฟอนต์/สคริปต์ CDN/Apps Script) ให้ผลรันซ้ำได้เหมือนเดิมทุกครั้ง
+async function openPage(ctxPage) {
+  await ctxPage.route('**/*', r => {
+    const u = r.request().url();
+    if (u.startsWith('file://') || u.startsWith('data:') || u.startsWith('blob:')) return r.continue();
+    return r.abort();
+  });
+  ctxPage.setDefaultNavigationTimeout(60000);
+  await ctxPage.goto(FILE, { waitUntil: 'domcontentloaded' });
+  await ctxPage.waitForTimeout(500);
+}
+
 const b = await chromium.launch();
 
 for (const mode of ['dark','light']) {
@@ -20,7 +32,7 @@ for (const mode of ['dark','light']) {
       const t = m.text();
       if (m.type()==='error' && !/net::|ERR_/i.test(t)) errs.push(t.slice(0,160));
     });
-    await page.goto(FILE);
+    await openPage(page);
     await page.waitForTimeout(3000);
     if (mode==='light') {
       await page.evaluate(()=>document.documentElement.classList.add('mafc-light'));
@@ -79,7 +91,7 @@ for (const mode of ['dark','light']) {
 // a11y: ปุ่มไอคอนต้องกดด้วยคีย์บอร์ดได้
 {
   const page = await b.newPage({ viewport:{width:390,height:844} });
-  await page.goto(FILE);
+  await openPage(page);
   await page.waitForTimeout(3000);
   const a = await page.evaluate(async () => {
     const host = document.createElement('div');
