@@ -114,10 +114,10 @@
     } else if (state === "readonly") {
       label.textContent = "ต่อชีตแล้ว · ดูอย่างเดียว";
       wrap.appendChild(el("span", "mafc-conn__note",
-        "ยังไม่ได้ใส่กุญแจในเครื่องนี้ จึงยังเพิ่ม/แก้/ลบ ไม่ได้"));
-      var b1 = el("button", "mafc-conn__act", "ใส่กุญแจที่ ตั้งค่า");
+        "ยังไม่ได้เข้าสู่ระบบในเครื่องนี้ จึงยังเพิ่ม/แก้/ลบ ไม่ได้"));
+      var b1 = el("button", "mafc-conn__act", "เข้าสู่ระบบ");
       b1.type = "button";
-      b1.setAttribute("aria-label", "เปิดหน้าตั้งค่าเพื่อใส่กุญแจสำหรับแก้ข้อมูล");
+      b1.setAttribute("aria-label", "เข้าสู่ระบบด้วยรหัสส่วนตัวเพื่อแก้ข้อมูล");
       b1.addEventListener("click", openSettings);
       wrap.appendChild(b1);
     } else {
@@ -178,7 +178,7 @@
       var t = n.textContent || "";
       if (!RE_KEY.test(t)) continue;
       n.classList.add("mafc-keyhint");
-      n.textContent = "ยังไม่ได้ใส่กุญแจในเครื่องนี้ — ดูรายการวัสดุได้ตามปกติ แต่ยังเพิ่ม/แก้/ลบ ไม่ได้ กดปุ่ม ตั้งค่า เพื่อใส่กุญแจ";
+      n.textContent = "ยังไม่ได้เข้าสู่ระบบในเครื่องนี้ — ดูรายการวัสดุได้ตามปกติ แต่ยังเพิ่ม/แก้/ลบ ไม่ได้ กดปุ่ม เข้าสู่ระบบ แล้วใส่รหัสส่วนตัว";
       if (state === "live" || state === "connecting") { state = "readonly"; paint(); }
       else { state = "readonly"; }
     }
